@@ -22,3 +22,9 @@ werden automatisch nachgesendet. Profil → „Abmelden“ führt zurück zur Pr
 `?nosync` startet die App rein lokal ohne Server.
 
 URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` (ohne Service Worker).
+
+## v1.3: Neustart bei null & großer Bierkatalog
+- Alle Bewertungen, Check-ins, Tastings, Mitteilungen, Likes und Favoriten wurden gelöscht; es gibt keine Beispieldaten mehr.
+- Daten-Epoche: Client (`DATA_EPOCH`) und Server (`hm_meta.epoch`) – ältere lokale Stände werden verworfen und nicht erneut hochgeladen.
+- `js/catalog.js`: über 600 echte Biere (Schwerpunkt Deutschland, dazu AT, CH, CZ, BE, NL, DK, UK/IE, USA, international) als kompakte Rohdaten; die Flaschen werden als SVG im Stil der bisherigen Grafiken gezeichnet.
+- Bierkatalog-Seite mit umlaut- und tippfehlertoleranter Suche, Stil- und Länderfiltern; lange Listen werden stückweise (lazy) gerendert.

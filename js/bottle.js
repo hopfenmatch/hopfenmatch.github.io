@@ -3,11 +3,17 @@
 let _gid=0;
 const GLASS={brown:['#3a1a06','#7a3f10','#b0631c'],green:['#0f2f14','#2e6a2a','#5c9a4a'],clear:['#8a8a7a','#d8d4c0','#f4f1e4']};
 function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=amt<0?0:255,p=Math.abs(amt);r=Math.round((f-r)*p+r);g=Math.round((f-g)*p+g);b=Math.round((f-b)*p+b);return '#'+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1)}
+function lumOf(h){const n=parseInt(String(h).slice(1),16);return (0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))/255}
+/* Schrift im Akzentband: Etikettfarbe, außer der Kontrast reicht nicht */
+function subInk(s){if(s.label===s.label2)return '#fff';const a=lumOf(s.label2);return Math.abs(lumOf(s.label)-a)>=0.3?s.label:(a>0.55?'#2a1a10':'#fff')}
+/* Stil-Infos (Farbe, dunkel, Weizenglas) aus dem Katalog, sonst Grundwerte */
+function styleInfo(st){const M=(typeof STYLE_META!=='undefined'&&STYLE_META[st])||{};
+ return {col:M.c||STYLE_COLORS[st]||'#f0b733',dark:M.d!=null?!!M.d:['Stout','Schwarzbier','Doppelbock','Rauchbier','Dunkel'].includes(st),weizen:M.w!=null?!!M.w:['Weißbier','Weizenbock'].includes(st)}}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function labelText(t,cx,cy,w,ink,maxFs){
   const parts=t.split('-').length>1&&t.length>11?[t.split('-')[0]+'-',t.split('-').slice(1).join('-')]:(t.length>12&&t.includes(' ')?[t.slice(0,t.lastIndexOf(' ')),t.slice(t.lastIndexOf(' ')+1)]:[t]);
   const longest=Math.max(...parts.map(p=>p.length));
-  const fs=Math.min(maxFs,w/(longest*0.56));
+  const fs=Math.min(maxFs,w/(longest*0.6));
   const lh=fs*1.0, y0=cy-(parts.length-1)*lh/2+fs*0.35;
   return parts.map((p,i)=>`<text x="${cx}" y="${(y0+i*lh).toFixed(1)}" font-family="Lora,Georgia,serif" font-weight="700" font-size="${fs.toFixed(1)}" fill="${ink}" text-anchor="middle">${esc(p)}</text>`).join('');
 }
@@ -40,7 +46,7 @@ function bottleShape(s){
   o+=`<rect x="${lx}" y="${labelY}" width="${lw}" height="${labelH}" fill="${s.label}"/>`;
   o+=`<rect x="${lx+2}" y="${labelY+2}" width="${lw-4}" height="${labelH-4}" fill="none" stroke="${s.label2}" stroke-width="1.1"/>`;
   o+=`<rect x="${lx}" y="${labelY+labelH-9}" width="${lw}" height="7" fill="${s.label2}" opacity=".95"/>`;
-  o+=`<text x="20" y="${labelY+labelH-3.8}" font-family="'Source Sans 3',Arial,sans-serif" font-weight="700" font-size="${Math.min(4.2,lw/(s.sub.length*0.62))}" fill="${s.label===s.label2?'#fff':s.label}" text-anchor="middle" letter-spacing=".2">${esc(s.sub)}</text>`;
+  o+=`<text x="20" y="${labelY+labelH-3.8}" font-family="'Source Sans 3',Arial,sans-serif" font-weight="700" font-size="${Math.min(4.2,lw/(s.sub.length*0.62))}" fill="${subInk(s)}" text-anchor="middle" letter-spacing=".2">${esc(s.sub)}</text>`;
   o+=`<circle cx="20" cy="${labelY+9}" r="4.2" fill="${s.label2}"/><path d="M20,${labelY+5.8} l1,2 2.2,.3 -1.6,1.5 .4,2.2 -2,-1.1 -2,1.1 .4,-2.2 -1.6,-1.5 2.2,-.3z" fill="${s.label}"/>`;
   o+=labelText(s.text,20,labelY+(labelH-9)/2+5,lw-5,s.ink,9.5);
   o+=`<rect x="${lx}" y="${labelY}" width="${lw}" height="${labelH}" fill="url(#${id}l)"/>`;
@@ -55,14 +61,16 @@ function canShape(s){
   o+=`<path d="M4,62 Q4,56 8,54 L32,54 Q36,56 36,62 L36,140 Q36,147 30,148 L10,148 Q4,147 4,140 Z" fill="url(#${id})"/>`;
   o+=`<rect x="7" y="50" width="26" height="6" rx="2" fill="url(#${id}m)"/><rect x="5" y="143" width="30" height="5" rx="2" fill="url(#${id}m)"/>`;
   o+=labelText(s.text,20,96,28,s.ink,8.5);
-  o+=`<text x="20" y="122" font-family="'Source Sans 3',Arial" font-weight="700" font-size="4.4" fill="${s.ink}" text-anchor="middle" letter-spacing=".6">${esc(s.sub)}</text>`;
+  o+=`<text x="20" y="122" font-family="'Source Sans 3',Arial" font-weight="700" font-size="${Math.min(4.4,27/(s.sub.length*0.7)).toFixed(2)}" fill="${s.ink}" text-anchor="middle" letter-spacing=".6">${esc(s.sub)}</text>`;
   o+=`<path d="M10,62 L10,140" stroke="#fff" stroke-opacity=".35" stroke-width="2.4" stroke-linecap="round"/>`;
   return o;
 }
+/* Schriftzug auf dem Glas: muss auf der Bierfarbe lesbar sein */
+function glassInk(s,col){if(lumOf(col)<0.3)return '#d9c08a';for(const c of [s.label2,s.ink,s.label]){if(c&&c!=='#ffffff'&&lumOf(c)<0.5)return shade(c,-0.1)}return '#5a3a10'}
 /* Glas in Box 0..44 x 60..150 */
 function glassShape(beer,s,dx){
-  const id='q'+(++_gid), col=STYLE_COLORS[beer.style]||'#f0b733', dark=['Stout','Schwarzbier','Doppelbock','Rauchbier','Dunkel'].includes(beer.style);
-  const weizen=['Weißbier','Weizenbock'].includes(beer.style);
+  const si=styleInfo(beer.style), id='q'+(++_gid), col=si.col, dark=si.dark&&!si.weizen;
+  const weizen=si.weizen;
   const foam=dark?'#e9d7bb':'#fdf5e3';
   let glass,liquid,top;
   if(weizen){glass=`M${dx+6},64 C${dx+4},86 ${dx+10},98 ${dx+11},112 C${dx+12},126 ${dx+9},136 ${dx+11},148 L${dx+33},148 C${dx+35},136 ${dx+32},126 ${dx+33},112 C${dx+34},98 ${dx+40},86 ${dx+38},64 Z`;top=64}
@@ -75,7 +83,7 @@ function glassShape(beer,s,dx){
   o+=`<rect x="${dx+8}" y="${top+4}" width="3" height="80" fill="#fff" opacity=".22"/></g>`;
   o+=`<path d="M${dx+3},${top+3} Q${dx+10},${top-6} ${dx+22},${top-3} Q${dx+34},${top-7} ${dx+41},${top+3} L${dx+40},${top+6} L${dx+4},${top+6}Z" fill="${foam}" stroke="#e3d3b0" stroke-width=".5"/>`;
   o+=`<path d="${glass}" fill="none" stroke="#5a3a10" stroke-opacity=".18" stroke-width=".7"/>`;
-  if(s){o+=labelText(s.text.split('-')[0].split(' ')[0],dx+22,top+44,26,dark?'#d9c08a':shade(s.label2==='#ffffff'?s.ink:s.label2,-0.1),6)}
+  if(s){o+=labelText(s.text.split('-')[0].split(' ')[0],dx+22,top+44,26,glassInk(s,col),6)}
   return o;
 }
 function beerSVG(beer,kind){

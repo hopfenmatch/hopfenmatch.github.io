@@ -1,7 +1,7 @@
 /* HopfenMatch – Stammdaten & Beispieldaten */
 'use strict';
 const STYLE_COLORS={Helles:'#f3c236',Pils:'#f6d34c',Lager:'#efbd35',Export:'#eab030',Festbier:'#e9a92a','Weißbier':'#eaa338',Weizenbock:'#c9741f',Kellerbier:'#dc8f2a',Stout:'#1e0e07',Schwarzbier:'#1a0c05',Doppelbock:'#6a2c0e',Rauchbier:'#5c240b','Pale Ale':'#e2952a',IPA:'#e7a02c',Dunkel:'#5a2a0f'};
-const STYLES=['Helles','Pils','Lager','Export','Festbier','Weißbier','Weizenbock','Kellerbier','Dunkel','Doppelbock','Stout','Schwarzbier','Rauchbier','Pale Ale','IPA'];
+let STYLES=['Helles','Pils','Lager','Export','Festbier','Weißbier','Weizenbock','Kellerbier','Dunkel','Doppelbock','Stout','Schwarzbier','Rauchbier','Pale Ale','IPA']; // wird vom Katalog erweitert
 const TAGS=['Malzig','Süffig','Ausgewogen','Mild','Harmonisch','Klassisch','Fruchtig','Spritzig','Banane','Röstig','Cremig','Unverwechselbar','Würzig','Vollmundig','Herb','Erfrischend','Hopfig','Rauchig','Karamell','Schokoladig','Nelke','Zitrus','Kräftig','Trocken','Süßlich','Naturtrüb'];
 
 /* img: echte Bilder aus der Referenz; svg: gezeichnete Flasche
@@ -50,82 +50,8 @@ const USERS={
 
 const H=3600e3, D=24*H;
 /* [user, beer, score, offset(ms vor jetzt), kommentar, tags] */
-const SEED_RATINGS=[
- ['sascha','tegernseer-hell',94,26*H,'Wunderbar süffig, malzig und ehrlich herb. Ein Klassiker, der einfach immer passt.',['Malzig','Süffig','Ausgewogen']],
- ['sascha','paulaner-weissbier',91,3*D,'Fruchtig, spritzig, schöne Banane – genau so muss ein Weißbier schmecken.',['Fruchtig','Spritzig','Banane']],
- ['sascha','guinness',90,4*D,'Röstig, cremig, unverwechselbar. Frisch gezapft im Pub ein Gedicht.',['Röstig','Cremig','Unverwechselbar']],
- ['sascha','schneider-tap7',88,5*D,'Würzig und vollmundig, tolle Karamellnote. Etwas schwerer als gedacht.',['Fruchtig','Würzig','Vollmundig']],
- ['sascha','ayinger-kellerbier',91,6*D,'So süffig und ausgewogen! Naturtrüb und richtig frisch.',['Süffig','Naturtrüb','Malzig']],
- ['sascha','bitburger',82,9*D,'Solides Pils, schön herb und erfrischend. Nichts Besonderes, aber zuverlässig.',['Herb','Spritzig','Erfrischend']],
- ['sascha','augustiner-hell',92,12*D,'Mild, harmonisch, klassisch. Das Helle für jeden Biergarten.',['Mild','Harmonisch','Klassisch']],
- ['sascha','augustiner-edelstoff',87,13*D,'Spritziger als das Helle, schön frisch. Perfekt im Sommer.',['Spritzig','Erfrischend','Malzig']],
- ['sascha','pilsner-urquell',87,15*D,'Toller Hopfen, leichte Karamellnote. Vom Fass in Prag noch besser.',['Hopfig','Karamell','Herb']],
- ['sascha','weihenstephaner-hefe',87,16*D,'Sehr rund, feine Banane, cremiger Schaum.',['Banane','Cremig','Fruchtig']],
- ['sascha','andechser-doppelbock',86,18*D,'Mächtig, malzig-süß und schokoladig. Eins reicht.',['Kräftig','Schokoladig','Malzig']],
- ['sascha','rothaus',86,20*D,'Tannenzäpfle – klein, fein, herb. Kultbier!',['Herb','Erfrischend','Klassisch']],
- ['sascha','paulaner-helles',85,22*D,'Ein erfrischendes Helles nach Feierabend.',['Süffig','Mild','Erfrischend']],
- ['sascha','giesinger',85,24*D,'Schön floral, unfiltriert, junge Münchner Brauerei mit Charakter.',['Hopfig','Naturtrüb','Süffig']],
- ['sascha','spaten-hell',84,27*D,'Klassisches Münchner Hell, angenehm mild.',['Mild','Klassisch','Ausgewogen']],
- ['sascha','moenchshof-keller',83,30*D,'Bügelflasche, Plopp, Kellerbier – passt.',['Malzig','Naturtrüb','Würzig']],
- ['sascha','franziskaner',81,33*D,'Fruchtig, aber etwas dünn im Abgang.',['Fruchtig','Spritzig']],
- ['sascha','jever',80,36*D,'Richtig herb – muss man mögen.',['Herb','Trocken','Hopfig']],
- ['sascha','koestritzer',79,40*D,'Leichter als es aussieht, dezente Röstaromen.',['Röstig','Mild']],
- ['sascha','punk-ipa',77,44*D,'Viel Grapefruit, ordentlich bitter. Für zwischendurch okay.',['Zitrus','Hopfig','Fruchtig']],
- ['sascha','erdinger',76,48*D,'Ganz okay, aber da gibt es bessere Weißbiere.',['Mild','Banane']],
- ['sascha','schlenkerla',74,55*D,'Schmeckt wie Schinken im Glas. Spannend, aber nicht meins.',['Rauchig','Malzig','Kräftig']],
- ['sascha','krombacher',72,60*D,'Standard-Pils, eher langweilig.',['Herb','Trocken']],
- ['sascha','becks',68,70*D,'Na ja – zum Grillen geht’s.',['Herb','Spritzig']],
- ['sascha','weihenstephaner-vitus',91,42*D,'Weizenbock mit Wumms – Banane, Nelke, Honig. Ganz groß!',['Banane','Nelke','Vollmundig']],
- ['sascha','schoenramer-pils',91,52*D,'Das beste Pils Bayerns, fein gehopft und blitzsauber.',['Hopfig','Herb','Erfrischend']],
- ['martin','guinness',90,5*H,'Röstig, cremig, unverwechselbar.',['Röstig','Cremig','Unverwechselbar']],
- ['martin','ayinger-kellerbier',96,8*H,'So süffig und ausgewogen! 😍',['Süffig','Ausgewogen','Naturtrüb']],
- ['martin','tegernseer-hell',92,10*D,'Ein bayerischer Klassiker! 🍺',['Malzig','Klassisch','Süffig']],
- ['martin','schneider-tap7',94,2*D,'Bestes Weißbier, das ich kenne. Würzig ohne Ende.',['Würzig','Karamell','Vollmundig']],
- ['martin','mahrs-au',93,3*D,'Das „Ungespundete“ in Bamberg direkt am Hahn – Wahnsinn!',['Hopfig','Naturtrüb','Süffig']],
- ['martin','ayinger-celebrator',94,4*D,'Samtig, dunkel, Pflaume und Kaffee. Ein Fest.',['Schokoladig','Kräftig','Karamell']],
- ['martin','tegernseer-spezial',92,6*D,'Kräftiger als das Helle und richtig rund.',['Vollmundig','Malzig','Ausgewogen']],
- ['martin','weihenstephaner-hefe',93,9*D,'Feinste Banane, super cremig.',['Banane','Cremig','Fruchtig']],
- ['martin','andechser-doppelbock',95,14*D,'Im Bräustüberl auf dem Heiligen Berg – unschlagbar.',['Kräftig','Schokoladig','Malzig']],
- ['martin','augustiner-edelstoff',91,17*D,'Spritzig und edel, nomen est omen.',['Spritzig','Erfrischend']],
- ['martin','augustiner-hell',95,21*D,'Einfach ein perfektes Helles! 🍺',['Mild','Harmonisch','Klassisch']],
- ['martin','paulaner-weissbier',86,19*D,'Gut, aber mir fast zu fruchtig.',['Fruchtig','Banane']],
- ['martin','paulaner-helles',89,11*D,'Ein erfrischendes Helles nach Feierabend!',['Süffig','Erfrischend']],
- ['martin','rothaus',89,23*D,'Kleine Flasche, großes Pils.',['Herb','Klassisch']],
- ['martin','hofbraeu-original',88,25*D,'Wiesn-Feeling auch im Sommer.',['Süffig','Vollmundig']],
- ['martin','spaten-hell',87,28*D,'Mild und ehrlich.',['Mild','Klassisch']],
- ['martin','sierra-nevada',85,31*D,'Schöner Hopfen, für ein Pale Ale top.',['Hopfig','Zitrus']],
- ['martin','franziskaner',85,34*D,'Ordentliches Weißbier.',['Fruchtig','Spritzig']],
- ['martin','koestritzer',84,38*D,'Überraschend leicht und rund.',['Röstig','Mild']],
- ['martin','loewenbraeu',83,41*D,'Süffig, aber etwas süß.',['Süßlich','Süffig']],
- ['martin','schlenkerla',81,46*D,'Rauchig, deftig – zur Brotzeit super.',['Rauchig','Kräftig']],
- ['martin','jever',78,50*D,'Zu herb für mich.',['Herb','Trocken']],
- ['martin','bitburger',75,58*D,'Bitte ein Bit – aber nur eins.',['Herb','Erfrischend']],
- ['martin','krombacher',74,64*D,'Geht so.',['Herb']],
- ['martin','becks',70,75*D,'Fernsehbier.',['Spritzig']]
-];
+const SEED_RATINGS=[]; // Neustart (v1.3): keine Beispiel-Bewertungen mehr
 /* Check-ins: Freund trinkt gerade */
-const SEED_CHECKINS=[
- ['martin','augustiner-hell',2*H,'Einfach ein perfektes Helles! 🍺']
-];
+const SEED_CHECKINS=[];
 function dayAt(offsetDays,h,m){const d=new Date();d.setDate(d.getDate()+offsetDays);d.setHours(h,m||0,0,0);return d.getTime()}
-function seedTastings(){
- const wd=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][new Date().getDay()];
- return [
- {id:'t-live',name:wd+' Tasting',date:dayAt(0,19,0),place:'Bei Martin',host:'sascha',participants:['sascha','martin'],status:'live',
-  beers:['augustiner-hell','paulaner-weissbier','guinness','schneider-tap7'],
-  scores:{'augustiner-hell':{sascha:91,martin:89},'paulaner-weissbier':{sascha:88,martin:92},'guinness':{sascha:95,martin:94},'schneider-tap7':{martin:90}},note:'Bringt Brezn mit! 🥨'},
- {id:'t-okt',name:'Oktoberfest-Nachlese',date:dayAt(13,19,30),place:'Bei Sascha',host:'sascha',participants:['sascha','martin'],status:'planned',
-  beers:['paulaner-oktoberfest','augustiner-edelstoff','hofbraeu-original','loewenbraeu','spaten-hell'],scores:{},note:'Festbiere im direkten Vergleich, dazu Hendl.'},
- {id:'t-franken',name:'Franken-Kellerbier-Abend',date:dayAt(27,18,0),place:'Biergarten am Chinesischen Turm',host:'martin',participants:['sascha','martin'],status:'planned',
-  beers:['mahrs-au','moenchshof-keller','ayinger-kellerbier','schlenkerla'],scores:{},note:''},
- {id:'t-weiss',name:'Weißbier-Vergleich',date:dayAt(-21,18,30),place:'Bei Martin',host:'martin',participants:['sascha','martin'],status:'done',
-  beers:['paulaner-weissbier','weihenstephaner-hefe','franziskaner','erdinger','schneider-tap7'],
-  scores:{'paulaner-weissbier':{sascha:90,martin:87},'weihenstephaner-hefe':{sascha:88,martin:93},'franziskaner':{sascha:80,martin:85},'erdinger':{sascha:75,martin:79},'schneider-tap7':{sascha:89,martin:94}},note:''},
- {id:'t-stout',name:'Stout & Dunkles',date:dayAt(-35,20,0),place:'Irish Pub, München',host:'sascha',participants:['sascha','martin'],status:'done',
-  beers:['guinness','koestritzer','andechser-doppelbock','schlenkerla'],
-  scores:{'guinness':{sascha:92,martin:91},'koestritzer':{sascha:79,martin:84},'andechser-doppelbock':{sascha:87,martin:95},'schlenkerla':{sascha:72,martin:81}},note:''},
- {id:'t-hell',name:'Helles-Battle',date:dayAt(-56,17,0),place:'Augustiner-Keller',host:'sascha',participants:['sascha','martin'],status:'done',
-  beers:['tegernseer-hell','augustiner-hell','paulaner-helles','spaten-hell','giesinger'],
-  scores:{'tegernseer-hell':{sascha:95,martin:92},'augustiner-hell':{sascha:93,martin:96},'paulaner-helles':{sascha:85,martin:88},'spaten-hell':{sascha:83,martin:86},'giesinger':{sascha:86,martin:84}},note:''}
- ];
-}
+function seedTastings(){return []}

@@ -1,5 +1,6 @@
 // HopfenMatch – Sync-Backend (Supabase Edge Function "hopfenmatch")
-// Routen: POST /login, GET|POST /sync, POST /seed, GET /health
+// Routen: POST /login, GET|POST /sync, GET /health
+// Daten-Epoche (hm_meta 'epoch'): Schreiben nur mit passender Epoche – nach einem Neustart der Daten laden alte Geräte neu, statt alte Bewertungen hochzuladen.
 // Eigene Tabellen hm_item / hm_session / hm_meta (siehe ../../../schema.sql). Galaxy Empire bleibt unberührt.
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
@@ -55,6 +56,11 @@ function allowed(user: string, it: any): string | null {
   return null;
 }
 
+async function getEpoch(): Promise<number> {
+  const r = must(await db.from("hm_meta").select("v").eq("k", "epoch").maybeSingle()) as { v: { n: number } } | null;
+  return Number(r?.v?.n) || 1;
+}
+
 async function pull(since: number) {
   const rev = must(await db.rpc("hm_rev")) as number;
   const items: any[] = [];
@@ -90,8 +96,7 @@ Deno.serve(async (req) => {
       fails.delete(ip);
       const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
       must(await db.from("hm_session").insert({ token, usr: user }));
-      const seeded = must(await db.from("hm_meta").select("v").eq("k", "seeded").maybeSingle());
-      return json({ token, user, seeded: !!seeded });
+      return json({ token, user, epoch: await getEpoch() });
     }
 
     const user = await auth(req);
@@ -101,11 +106,17 @@ Deno.serve(async (req) => {
       let since = Number(url.searchParams.get("since") || 0);
       let wrote = 0;
       const rejected: any[] = [];
+      const epoch = await getEpoch();
       if (req.method === "POST") {
         const raw = await req.text();
         if (raw.length > MAX_BODY) return json({ error: "Zu groß" }, 413);
         const b = JSON.parse(raw || "{}");
         since = Number(b.since ?? since) || 0;
+        if (Number(b.epoch) !== epoch) {
+          // Gerät hat einen veralteten Datenstand (vor dem letzten Neustart): nichts schreiben, Neuladen anfordern
+          const rev = Number(must(await db.rpc("hm_rev")));
+          return json({ user, wrote: 0, rejected: [], resetRequired: true, epoch, rev, items: [] });
+        }
         const items = Array.isArray(b.items) ? b.items.slice(0, MAX_ITEMS) : [];
         const ok: any[] = [];
         for (const it of items) {
@@ -116,19 +127,10 @@ Deno.serve(async (req) => {
         if (ok.length) { must(await db.rpc("hm_put", { p_items: ok, p_user: user })); wrote = ok.length; }
       }
       const p = await pull(since);
-      return json({ user, wrote, rejected, ...p });
+      return json({ user, wrote, rejected, epoch, ...p });
     }
 
-    if (path === "/seed" && req.method === "POST") {
-      // Einmaliger Startbestand: nur wenn noch nichts gesät wurde
-      const seeded = must(await db.from("hm_meta").select("v").eq("k", "seeded").maybeSingle());
-      if (seeded) return json({ error: "Schon angelegt", seeded: true }, 409);
-      const b = await req.json();
-      const items = (Array.isArray(b.items) ? b.items : []).filter((it: any) => KINDS.includes(it?.kind) && typeof it?.id === "string" && it.data);
-      for (let i = 0; i < items.length; i += 200) must(await db.rpc("hm_put", { p_items: items.slice(i, i + 200), p_user: "seed" }));
-      must(await db.from("hm_meta").insert({ k: "seeded", v: { t: Date.now(), by: user, n: items.length } }));
-      return json({ ok: true, n: items.length, ...(await pull(0)) });
-    }
+    if (path === "/seed") return json({ error: "Startdaten gibt es nicht mehr (v1.3: Neustart bei null)" }, 410);
     return json({ error: "Unbekannte Route" }, 404);
   } catch (e) {
     console.error(e);

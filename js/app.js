@@ -51,42 +51,21 @@ const STAR='<svg viewBox="0 0 24 24"><path fill="currentColor" d="m12 2.3 2.9 6.
 const LS='hopfenmatch.v1';
 let S;
 function uid(){return Math.random().toString(36).slice(2,9)}
-function seed(noSave){
- const now=Date.now();
- S={v:1,ratings:SEED_RATINGS.map(r=>({id:r[0]+':'+r[1],user:r[0],beer:r[1],score:r[2],ts:now-r[3],comment:r[4],tags:r[5]})),
-  checkins:SEED_CHECKINS.map(c=>({id:uid(),user:c[0],beer:c[1],ts:now-c[2],comment:c[3]})),
-  tastings:seedTastings(),customBeers:[],favs:['tegernseer-hell'],likes:{},events:[],
-  notifs:saschaNotifs(now).concat(martinNotifs(now)),settings:{push:true,sounds:true}};
- S.v=2;S.favs={sascha:['tegernseer-hell'],martin:['ayinger-kellerbier']};S.likes={sascha:{},martin:{}};
- S.checkins.forEach(c=>S.likes.sascha['c-'+c.id]=true);
- if(!noSave)save();
+/* Leerer Startzustand (v1.3: alles auf null – keine Beispieldaten mehr) */
+function emptyState(){return {v:2,ratings:[],checkins:[],tastings:[],customBeers:[],events:[],notifs:[],likes:{sascha:{},martin:{}},favs:{sascha:[],martin:[]},settings:(S&&S.settings)||{push:true,sounds:true}}}
+function seed(noSave){S=emptyState();if(!noSave)save()}
+/* Daten-Epoche: wird bei einem Neustart der Daten hochgezählt. Ältere lokale Zwischenspeicher werden dann verworfen,
+   damit alte Geräte keine alten Bewertungen erneut hochladen. */
+const DATA_EPOCH=2, LS_EPOCH='hopfenmatch.epoch';
+function wipeLocal(ep){
+ S=emptyState();try{localStorage.setItem(LS,JSON.stringify(S));localStorage.setItem(LS_EPOCH,String(ep))}catch(e){}
+ if(typeof SY!=='undefined'){SY.rev=null;SY.snap={};SY.epoch=ep;saveSync()}
 }
-/* Mitteilungen je Nutzer: to = Empfänger, from = Absender (für das Profilbild) */
-function saschaNotifs(now){return [
-   {id:uid(),to:'sascha',from:'martin',ts:now-2*H,kind:'drink',text:'<b>Martin</b> trinkt gerade <b>Augustiner Hell</b> 🍺',link:'beer:augustiner-hell',read:false},
-   {id:uid(),to:'sascha',from:'martin',ts:now-5*H,kind:'rate',text:'<b>Martin</b> hat <b>Guinness Draught</b> mit 90 Punkten bewertet.',link:'beer:guinness',read:false},
-   {id:uid(),to:'sascha',ts:now-8*H,kind:'match',text:'Neuer <b>Bier-Match</b> mit Martin: <b>Ayinger Kellerbier</b> 🍻',link:'beer:ayinger-kellerbier',read:false},
-   {id:uid(),to:'sascha',ts:now-20*H,kind:'tasting',text:'<b>Martin</b> hat für das <b>Tasting heute Abend</b> zugesagt.',link:'tasting:t-live',read:true},
-   {id:uid(),to:'sascha',ts:now-2*D,kind:'chance',text:'3 neue <b>Match-Chancen</b>: Biere, die Martin über 90 liebt.',link:'discover',read:true},
-   {id:uid(),to:'sascha',from:'martin',ts:now-4*D,kind:'rate',text:'<b>Martin</b> hat <b>Ayinger Celebrator</b> mit 94 Punkten bewertet.',link:'beer:ayinger-celebrator',read:true}]}
-function martinNotifs(now){return [
-   {id:uid(),to:'martin',from:'sascha',ts:now-90*60000,kind:'like',text:'<b>Sascha</b> gefällt, dass du <b>Augustiner Hell</b> trinkst 👍',link:'beer:augustiner-hell',read:false},
-   {id:uid(),to:'martin',ts:now-8*H,kind:'match',text:'Neuer <b>Bier-Match</b> mit Sascha: <b>Ayinger Kellerbier</b> 🍻',link:'beer:ayinger-kellerbier',read:false},
-   {id:uid(),to:'martin',from:'sascha',ts:now-26*H,kind:'rate',text:'<b>Sascha</b> hat <b>Tegernseer Hell</b> mit 94 Punkten bewertet.',link:'beer:tegernseer-hell',read:false},
-   {id:uid(),to:'martin',ts:now-30*H,kind:'tasting',text:'<b>Sascha</b> hat dich zum <b>Tasting heute Abend</b> eingeladen.',link:'tasting:t-live',read:true},
-   {id:uid(),to:'martin',from:'sascha',ts:now-3*D,kind:'rate',text:'<b>Sascha</b> hat <b>Paulaner Weißbier</b> mit 91 Punkten bewertet.',link:'beer:paulaner-weissbier',read:true},
-   {id:uid(),to:'martin',ts:now-5*D,kind:'chance',text:'Neue <b>Match-Chancen</b>: Biere, die Sascha über 90 liebt.',link:'discover',read:true}]}
-/* v1 (nur Sascha) -> v2 (Sascha & Martin auf einem Gerät): alle Bewertungen, Tastings usw. bleiben erhalten */
-function migrate(o){
- if(o&&o.v===1){
-  o.notifs=(o.notifs||[]).map(n=>Object.assign({to:'sascha',from:(['rate','drink','like'].includes(n.kind)&&/Martin/.test(n.text||''))?'martin':null},n)).concat(martinNotifs(Date.now()));
-  const lk=o.likes&&typeof o.likes==='object'?o.likes:{};o.likes={sascha:lk,martin:{}};
-  o.favs={sascha:Array.isArray(o.favs)?o.favs:[],martin:['ayinger-kellerbier']};
-  o.events=o.events||[];o.v=2;o.migratedFrom=1;
- }
- return o;
+function load(){
+ let ep=null;try{ep=localStorage.getItem(LS_EPOCH)}catch(e){}
+ if(!(+ep>=DATA_EPOCH)){wipeLocal(DATA_EPOCH);return}
+ try{S=JSON.parse(localStorage.getItem(LS));if(!S||S.v!==2)throw 0;save(true)}catch(e){S=emptyState();save(true)}
 }
-function load(){try{S=migrate(JSON.parse(localStorage.getItem(LS)));if(!S||S.v!==2)throw 0;save()}catch(e){seed()}}
 function save(fromSync){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}if(!fromSync&&typeof scheduleSync==='function')scheduleSync()}
 
 /* ---------- Daten-Helfer ---------- */
@@ -113,6 +92,8 @@ function starsHTML(score,size=17,gap=4){
  return `<span class="stars" style="--ss:${size}px;--sg:${gap}px"><span class="s0">${row}</span><span class="s1" style="width:${w}px">${row}</span></span>`;
 }
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+/* Leerzustand-Karte */
+function emptyCard(icon,title,text,btns,small){return `<div class="ecard ${small?'sm':''}"><span class="eic">${ic(icon)}</span><div class="etx"><b>${title}</b><p>${text}</p>${btns?`<div class="ebtns">${btns}</div>`:''}</div></div>`}
 function thumb(b,kind='bot'){
  b=typeof b==='string'?B(b):b;
  if(b.img){const src=b.img[kind]||b.img.bot;return `<img src="img/${src}.webp" alt="${esc(b.name)}" loading="lazy" draggable="false">`}
@@ -195,16 +176,20 @@ VIEWS.start=()=>{
    <div class="hc"><div class="hl" data-tab-go="rangliste">Zuletzt bewertet ${ic('chev')}</div><div class="bn">${esc(b.name)}</div><div class="br">${esc(b.brewery)}</div><div class="st">${esc(b.style)} · ${fmtAbv(b.abv)}</div>
    <div class="scorebig"><b>${last.score}</b><span>/100</span></div>${starsHTML(last.score,18,4.5)}
    <div class="cm">„${esc(last.comment||'Noch kein Kommentar.')}“</div><div class="chips">${(last.tags||[]).slice(0,3).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div></div></div>`}
- else hero=`<div class="card hero" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px"><div class="hl" style="font-family:var(--serif);font-size:20px;font-weight:750">Noch nichts bewertet</div><button class="btn gold sm" data-act="rate">${ic('plus')} Erstes Bier bewerten</button></div>`;
+ else{const pv=['augustiner-hell','paulaner-weissbier','guinness'].map(id=>B(id));
+  hero=`<div class="card hero first pressable" data-act="rate" role="button"><div class="fh-bottles">${pv.map(b=>`<span>${thumb(b,'bot')}</span>`).join('')}</div>
+   <div class="fh-tx"><div class="fh-k">Willkommen, ${esc(U(ME).name)}!</div><h2>Bewerte dein erstes Bier</h2><p>${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern warten. Gib 0–100 Punkte – über 90 bei euch beiden ist ein Bier-Match.</p>
+   <div class="fh-btns"><span class="btn gold sm">${ic('plus')} Bier bewerten</span><span class="btn ghost sm" data-go="catalog">${ic('search')} Katalog</span></div></div></div>`}
  const acts=activities().filter(e=>!((e.type==='rate'||e.type==='drink')&&e.user===ME)).slice(0,3);
  const ch=chances().length;
  return `<div class="wrap">${hero}
  <div class="sect"><h2>Heute spannend</h2><button class="more" data-go="activities">Alle Aktivitäten ${ic('chev')}</button></div>
- <div class="acts">${acts.map(actRow).join('')}</div>
- <div class="banner"><img src="img/hop_illu.webp" alt=""><div class="bt"><h3><em>${ch}</em>Match-Chance${ch===1?'':'n'} heute</h3><p>Diese Biere könnten dir und deinen Freunden auch schmecken.</p></div><button class="btn-green" data-go="discover">Jetzt entdecken ${ic('chev')}</button></div>
+ <div class="acts">${acts.map(actRow).join('')||emptyCard('people','Noch ruhig hier',`Sobald ${FN()} ein Bier bewertet oder ihr einen Bier-Match habt, siehst du es hier.`,'',true)}</div>
+ ${ch?`<div class="banner"><img src="img/hop_illu.webp" alt=""><div class="bt"><h3><em>${ch}</em>Match-Chance${ch===1?'':'n'} heute</h3><p>Diese Biere könnten dir und deinen Freunden auch schmecken.</p></div><button class="btn-green" data-go="discover">Jetzt entdecken ${ic('chev')}</button></div>`
+ :`<div class="banner"><img src="img/hop_illu.webp" alt=""><div class="bt"><h3><em>${BEERS.length}</em>Biere im Katalog</h3><p>Stöbere nach Stil und Land – von Kölsch bis Trappist.</p></div><button class="btn-green" data-go="catalog">Entdecken ${ic('chev')}</button></div>`}
  </div>`;
 };
-function styleGroup(s){if(['Stout','Schwarzbier','Doppelbock','Rauchbier','Dunkel'].includes(s))return 'dunkel';if(s==='Helles')return 'helles';if(['Weißbier','Weizenbock'].includes(s))return 'weiss';if(s==='Pils')return 'pils';return 'mehr'}
+function styleGroup(s){return (STYLE_META[s]||{}).g||'hell'}
 function rankRow(r,i,user){
  const b=B(r.beer), m=isMatch(r.beer);
  return `<button class="card rrow pressable" data-go="beer" data-id="${b.id}"><span class="rank ${i<3?'r'+(i+1):''}">${i+1}</span>
@@ -214,7 +199,10 @@ function rankRow(r,i,user){
 }
 VIEWS.rangliste=()=>{
  const all=rList(ME);
- const groups=[['all','Alle',all.length],['match','Matches',all.filter(r=>isMatch(r.beer)).length],['helles','Helles'],['weiss','Weißbier'],['pils','Pils'],['dunkel','Dunkel & Stout'],['mehr','Weitere']];
+ const gc={};all.forEach(r=>{const g=styleGroup(B(r.beer).style);gc[g]=(gc[g]||0)+1});
+ const groups=[['all','Alle',all.length],['match','Matches',all.filter(r=>isMatch(r.beer)).length]].concat(STYLE_GROUPS.filter(g=>gc[g[0]]).map(g=>[g[0],g[1],gc[g[0]]]));
+ if(!groups.some(g=>g[0]===RFILTER))RFILTER='all';
+ if(!all.length)return `<div class="wrap"><h1 class="ptitle big">Rangliste</h1><p class="psub">Meine bewerteten Biere</p>${emptyCard('trophy','Deine Rangliste ist noch leer','Bewerte dein erstes Bier – hier entsteht deine persönliche Top-Liste, sortiert nach Punkten.',`<button class="btn gold sm" data-act="rate">${ic('plus')} Bier bewerten</button><button class="btn ghost sm" data-go="catalog">${ic('search')} Katalog</button>`)}</div>`;
  const list=all.filter(r=>RFILTER==='all'||(RFILTER==='match'?isMatch(r.beer):styleGroup(B(r.beer).style)===RFILTER));
  return `<div class="wrap"><h1 class="ptitle big">Rangliste</h1><p class="psub">Meine bewerteten Biere</p>
  <div class="filters">${groups.map(g=>`<button class="fchip ${RFILTER===g[0]?'on':''}" data-filter="${g[0]}">${g[1]}${g[2]!=null?` <span class="n">${g[2]}</span>`:''}</button>`).join('')}</div>
@@ -237,9 +225,9 @@ VIEWS.freunde=()=>{
   <div class="bt">${st.beer?thumb(b):''}</div>
   <div class="fmatch"><div class="mp">${av(FR)}${av(ME)}${ic('heartf')}</div><div class="mt">${ms.length} Match${ms.length===1?'':'es'} ${ic('chev')}</div></div></button></div>
  <div class="sect"><h2>Eure Matches</h2><button class="more" data-go="friend" data-id="${FR}" data-seg="matches">Alle ${ic('chev')}</button></div>
- <div class="hscroll">${ms.map(r=>{const bb=B(r.beer),o=rOf(FR,r.beer);return `<button class="card mcard pressable" data-go="beer" data-id="${bb.id}"><div class="pic">${thumb(bb)}</div><div class="nm">${esc(bb.name)}</div><div class="both"><span class="mini">${av(ME)}${r.score}</span><span class="mini">${av(FR)}${o.score}</span></div></button>`}).join('')||'<div class="card empty" style="width:100%">Noch keine Matches – bewertet mehr Biere!</div>'}</div>
+ <div class="hscroll">${ms.map(r=>{const bb=B(r.beer),o=rOf(FR,r.beer);return `<button class="card mcard pressable" data-go="beer" data-id="${bb.id}"><div class="pic">${thumb(bb)}</div><div class="nm">${esc(bb.name)}</div><div class="both"><span class="mini">${av(ME)}${r.score}</span><span class="mini">${av(FR)}${o.score}</span></div></button>`}).join('')||`<div class="ecard sm" style="width:100%"><span class="eic">${ic('heartf')}</span><div><b>Noch keine Matches</b><p>Gebt beide über 90 Punkte für dasselbe Bier.</p></div></div>`}</div>
  <div class="sect"><h2>${FN()} zuletzt</h2><button class="more" data-go="activities" data-f="friend">Alle ${ic('chev')}</button></div>
- <div class="stack">${recent.map(r=>{const bb=B(r.beer);return `<button class="card lrow pressable" data-go="beer" data-id="${bb.id}"><div class="pic">${thumb(bb)}</div><div class="tx"><div class="nm">${esc(bb.name)}</div><div class="sb">${rel(r.ts)} · „${esc(r.comment)}“</div></div><span class="scorepill"><b>${r.score}</b>/100</span></button>`}).join('')}</div>
+ <div class="stack">${recent.map(r=>{const bb=B(r.beer);return `<button class="card lrow pressable" data-go="beer" data-id="${bb.id}"><div class="pic">${thumb(bb)}</div><div class="tx"><div class="nm">${esc(bb.name)}</div><div class="sb">${rel(r.ts)}${r.comment?` · „${esc(r.comment)}“`:''}</div></div><span class="scorepill"><b>${r.score}</b>/100</span></button>`}).join('')||emptyCard('beer',`${FN()} hat noch nichts bewertet`,`Sobald ${FN()} sein erstes Bier bewertet, erscheint es hier.`,'',true)}</div>
  <button class="card invite pressable" data-act="invite" style="width:100%;text-align:left"><span class="ic">${ic('userplus')}</span><div style="flex:1"><h4>Freund einladen</h4><p>Mehr Freunde = mehr Matches. Teile deinen Einladungslink.</p></div><span style="color:#b5a99c">${ic('chev')}</span></button>
  </div>`;
 };
@@ -248,7 +236,7 @@ function curTasting(){
 }
 function avgOf(t,b){const s=t.scores[b]||{};const v=t.participants.map(u=>s[u]).filter(x=>x!=null);return v.length?Math.round(v.reduce((a,c)=>a+c,0)/v.length):null}
 function tastingBlock(t){
- if(!t)return `<div class="card empty">Noch kein Tasting geplant.<br><br><button class="btn gold sm" data-act="newTasting">${ic('plus')} Abend planen</button></div>`;
+ if(!t)return emptyCard('cal','Noch kein Tasting geplant',`Plane einen Abend mit ${FN()}, stellt eine Bier-Liste zusammen und bewertet live gemeinsam.`,`<button class="btn gold sm" data-act="newTasting">${ic('plus')} Abend planen</button>`);
  const pill=t.status==='live'?'<span class="livepill"><i></i>Live aktiv</span>':t.status==='planned'?'<span class="livepill pl"><i></i>Geplant</span>':'<span class="livepill dn"><i></i>Beendet</span>';
  const inv=t.participants.filter(u=>u!==ME).length;
  const parts=t.participants.map(u=>`<button class="part" data-go="${u===ME?'profile':'friend'}" data-id="${u}"><span class="av"><img src="${U(u).img}" alt="">${u===t.host?`<span class="crown">${ic('crown')}</span>`:''}<span class="on"></span></span>${u===ME?'Du':U(u).name}</button>`).join('');
@@ -270,8 +258,8 @@ VIEWS.planen=()=>{
  const t=curTasting();
  const others=S.tastings.filter(x=>!t||x.id!==t.id).sort((a,b)=>{const ra=a.status==='done'?1:0,rb=b.status==='done'?1:0;return ra-rb||(ra?b.date-a.date:a.date-b.date)});
  return `<div class="wrap"><h1 class="ptitle mid">Planen</h1><p class="psub small">Tasting-Abend</p>${tastingBlock(t)}
- <div class="sect"><h2>Weitere Abende</h2><button class="btn-soft" data-act="newTasting">${ic('plus')} Neu</button></div>
- <div class="stack">${others.map(ocard).join('')}</div></div>`;
+ ${t?`<div class="sect"><h2>Weitere Abende</h2><button class="btn-soft" data-act="newTasting">${ic('plus')} Neu</button></div>
+ <div class="stack">${others.map(ocard).join('')||'<p class="note" style="margin-top:0">Keine weiteren Abende geplant.</p>'}</div>`:''}</div>`;
 };
 function ocard(t){const d=new Date(t.date);const win=t.status==='done'?winner(t):null;
  return `<button class="card ocard pressable" data-go="tasting" data-id="${t.id}"><span class="dt"><small>${MO[d.getMonth()].replace('.','')}</small><b>${d.getDate()}</b></span><div class="tx"><div class="nm">${esc(t.name)}</div><div class="sb">${WD[d.getDay()]}, ${fmtTime(t.date)} · ${esc(t.place)}</div><div class="sb">${t.beers.length} Biere${win?` · 🏆 ${esc(B(win.b).name)} (Ø ${win.a})`:''}</div></div>
@@ -300,7 +288,7 @@ function buildPage(p){
  const pb=$('.pbody',p.el),nav=$('.pnav',p.el);pb.addEventListener('scroll',()=>nav.classList.toggle('sc',pb.scrollTop>4),{passive:true});
  if(r.after)r.after(p.el);
 }
-function refreshPage(p){const pb=$('.pbody',p.el),st=pb?pb.scrollTop:0;buildPage(p);const nb=$('.pbody',p.el);if(nb)nb.scrollTop=st}
+function refreshPage(p){const pb=$('.pbody',p.el),st=pb?pb.scrollTop:0;const l=$('#clist',p.el);if(l&&l._count)p.shown=l._count();buildPage(p);const nb=$('.pbody',p.el);if(nb)nb.scrollTop=st}
 function pop(){
  const p=STACK.pop(); if(!p)return;
  if(p.cleanup)p.cleanup();
@@ -345,21 +333,22 @@ PAGES.activities=({f})=>{
  const groups={};const lab=ts=>{const t0=new Date();t0.setHours(0,0,0,0);const d=Date.now()-ts;if(ts>=t0.getTime())return 'Heute';if(ts>=t0.getTime()-D)return 'Gestern';if(d<7*D)return 'Diese Woche';if(d<30*D)return 'Diesen Monat';return 'Früher'};
  all.forEach(e=>{(groups[lab(e.ts)]=groups[lab(e.ts)]||[]).push(e)});
  return {title:'Aktivitäten',body:`<div class="filters" style="margin-top:6px">${[['all','Alle'],['friend',FN()],['me','Ich'],['match','Matches']].map(x=>`<button class="fchip ${filt===x[0]?'on':''}" data-actf="${x[0]}">${x[1]}</button>`).join('')}</div>
- ${Object.keys(groups).map(g=>`<div class="daylbl">${g}</div><div class="acts">${groups[g].map(actRow).join('')}</div>`).join('')||'<div class="card empty">Keine Aktivitäten.</div>'}`};
+ ${Object.keys(groups).map(g=>`<div class="daylbl">${g}</div><div class="acts">${groups[g].map(actRow).join('')}</div>`).join('')||emptyCard('clock','Keine Aktivitäten','Bewertungen, Matches und Tastings von dir und '+esc(FN())+' erscheinen hier.',`<button class="btn gold sm" data-act="rate">${ic('plus')} Bier bewerten</button>`)}`};
 };
 PAGES.discover=()=>{
  const ch=chances(),nm=nearMatches();
- const best=beers().filter(b=>!rOf(ME,b.id)&&!rOf(FR,b.id)).slice(0,6);
+ const pool=beers().filter(b=>!rOf(ME,b.id)&&!rOf(FR,b.id)),day=Math.floor(Date.now()/D),best=[];for(let k=0;k<6&&pool.length;k++)best.push(pool.splice((day*7919+k*104729)%pool.length,1)[0]);
  const card=(r,why)=>{const b=B(r.beer||r.id);return `<button class="card disc pressable" data-go="beer" data-id="${b.id}"><div class="pic">${thumb(b)}</div><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.brewery)} · ${esc(b.style)} · ${fmtAbv(b.abv)}</div><div class="why">${why}</div></div><span class="btn gold sm" data-act="rate" data-id="${b.id}" style="height:34px;padding:0 12px">Bewerten</span></button>`};
- return {title:'Match-Chancen',body:`<div class="banner" style="margin-top:4px"><img src="img/hop_illu.webp" alt=""><div class="bt"><h3><em>${ch.length}</em>Match-Chance${ch.length===1?'':'n'}</h3><p>${FN()} liebt diese Biere (über 90). Bewertest du sie auch über 90, habt ihr einen Match!</p></div></div>
- <div class="sect"><h2>${FG()} Favoriten für dich</h2></div><div class="stack">${ch.map(r=>card(r,`${av(FR)} ${FN()}: ${r.score}/100`)).join('')||`<div class="card empty">Du hast alle Favoriten von ${FN()} schon bewertet. 💪</div>`}</div>
+ return {title:'Entdecken',body:`<div class="banner" style="margin-top:4px"><img src="img/hop_illu.webp" alt=""><div class="bt"><h3><em>${ch.length}</em>Match-Chance${ch.length===1?'':'n'}</h3><p>${FN()} liebt diese Biere (über 90). Bewertest du sie auch über 90, habt ihr einen Match!</p></div></div>
+ <div class="sect"><h2>${FG()} Favoriten für dich</h2></div><div class="stack">${ch.map(r=>card(r,`${av(FR)} ${FN()}: ${r.score}/100`)).join('')||`<div class="card empty">${rList(FR).length?`Du hast alle Favoriten von ${FN()} schon bewertet. 💪`:`${FN()} hat noch keine Favoriten – sobald er Biere über 90 bewertet, tauchen sie hier auf.`}</div>`}</div>
  <div class="sect"><h2>Fast ein Match</h2></div><p class="note" style="margin-top:-4px">Du liegst knapp darunter – vielleicht nochmal probieren?</p><div class="stack">${nm.map(r=>{const m=rOf(ME,r.beer);return card(r,`<span class="pill-mini">Du ${m.score}</span><span class="pill-mini">${FN()} ${r.score}</span>`)}).join('')||'<div class="card empty">Keine knappen Kandidaten.</div>'}</div>
- <div class="sect"><h2>Noch unentdeckt</h2></div><div class="stack">${best.map(b=>card({id:b.id},`<span style="color:#8a7e74;font-weight:500">Hat noch keiner von euch probiert</span>`)).join('')}</div>`};
+ <div class="sect"><h2>Noch unentdeckt</h2><button class="more" data-go="catalog">Ganzer Katalog ${ic('chev')}</button></div><div class="stack">${best.map(b=>card({id:b.id},`<span style="color:#8a7e74;font-weight:500">${flag(b)} Hat noch keiner von euch probiert</span>`)).join('')}</div>
+ <div class="btnrow"><button class="btn ghost" data-go="catalog">${ic('search')} Alle ${beers().length} Biere durchsuchen</button></div>`};
 };
 PAGES.notifs=()=>{
  const list=myNotifs().sort((a,b)=>b.ts-a.ts);
  const icn={match:['#5f8a35','heartf'],rate:['#d8921a','star'],drink:['#c47d14','beer'],tasting:['#7a5a3a','cal'],chance:['#62803a','spark'],like:['#d8921a','heartf']};
- return {title:'Mitteilungen',action:`<button class="act2" data-act="readAll">Alle gelesen</button>`,body:`<div class="group" style="margin-top:8px">${list.map(n=>{const k=icn[n.kind]||icn.rate;return `<button class="notif" data-notif="${n.id}">${n.from&&U(n.from)?av(n.from):`<span class="nic" style="background:${k[0]}1f;color:${k[0]}">${ic(k[1])}</span>`}<div class="tx">${n.text}<small>${rel(n.ts)}</small></div>${n.read?'':'<span class="ud"></span>'}</button>`}).join('')||'<div class="empty">Keine Mitteilungen</div>'}</div>`};
+ return {title:'Mitteilungen',action:`<button class="act2" data-act="readAll">Alle gelesen</button>`,body:`<div class="group" style="margin-top:8px">${list.map(n=>{const k=icn[n.kind]||icn.rate;return `<button class="notif" data-notif="${n.id}">${n.from&&U(n.from)?av(n.from):`<span class="nic" style="background:${k[0]}1f;color:${k[0]}">${ic(k[1])}</span>`}<div class="tx">${n.text}<small>${rel(n.ts)}</small></div>${n.read?'':'<span class="ud"></span>'}</button>`}).join('')||`<div class="ecard flat"><span class="eic">${ic('bell')}</span><b>Keine Mitteilungen</b><p>Hier erfährst du, wenn ${esc(FN())} bewertet, dich einlädt oder ihr einen Bier-Match habt.</p></div>`}</div>`};
 };
 PAGES.profile=()=>{
  const mine=rList(ME);const avg=mine.length?Math.round(mine.reduce((a,r)=>a+r.score,0)/mine.length):0;
@@ -371,25 +360,27 @@ PAGES.profile=()=>{
   <button class="gi" data-tab-go="rangliste"><span class="ic" style="background:#d8921a">${ic('trophy')}</span><span class="lb">Lieblingsbier</span><span class="vl">${top?esc(B(top.beer).name):'–'}</span><span class="chev">${ic('chev')}</span></button>
   <div class="gi"><span class="ic" style="background:#62803a">${ic('beer')}</span><span class="lb">Lieblingsstil</span><span class="vl">${esc(fav)}</span></div>
   <button class="gi" data-go="friend" data-id="${FR}"><span class="ic" style="background:#7a5a3a">${ic('people')}</span><span class="lb">Freunde</span><span class="vl">1 · ${FN()}</span><span class="chev">${ic('chev')}</span></button>
-  <button class="gi" data-go="tastings"><span class="ic" style="background:#b5651d">${ic('cal')}</span><span class="lb">Tastings</span><span class="vl">${S.tastings.length}</span><span class="chev">${ic('chev')}</span></button></div>
+  <button class="gi" data-go="tastings"><span class="ic" style="background:#b5651d">${ic('cal')}</span><span class="lb">Tastings</span><span class="vl">${S.tastings.length}</span><span class="chev">${ic('chev')}</span></button>
+  <button class="gi" data-go="catalog"><span class="ic" style="background:#3b6e8f">${ic('search')}</span><span class="lb">Bierkatalog</span><span class="vl">${beers().length} Biere</span><span class="chev">${ic('chev')}</span></button></div>
  <div class="lbl">Einstellungen</div><div class="group">
   <div class="gi"><span class="ic" style="background:#e0543c">${ic('bell')}</span><span class="lb">Mitteilungen</span><button class="switch ${S.settings.push?'on':''}" data-toggle="push" aria-label="Mitteilungen"></button></div>
   <div class="gi"><span class="ic" style="background:#3b82c4">${ic('spark')}</span><span class="lb">Match-Feier mit Konfetti</span><button class="switch ${S.settings.sounds?'on':''}" data-toggle="sounds" aria-label="Konfetti"></button></div>
   <button class="gi" data-act="install"><span class="ic" style="background:#555">${ic('phone')}</span><span class="lb">Zum Home-Bildschirm</span><span class="chev">${ic('chev')}</span></button>
   <button class="gi" data-act="invite"><span class="ic" style="background:#62803a">${ic('userplus')}</span><span class="lb">Freund einladen</span><span class="chev">${ic('chev')}</span></button>
-  <button class="gi" data-act="about"><span class="ic" style="background:#a08a70">${ic('info')}</span><span class="lb">Über HopfenMatch</span><span class="vl">1.2</span><span class="chev">${ic('chev')}</span></button></div>
+  <button class="gi" data-act="about"><span class="ic" style="background:#a08a70">${ic('info')}</span><span class="lb">Über HopfenMatch</span><span class="vl">1.3</span><span class="chev">${ic('chev')}</span></button></div>
  ${syncOn()?`<div class="lbl">Synchronisierung</div><div class="group"><button class="gi" data-act="syncNow"><span class="ic" style="background:${SYNC.online?'#62803a':'#a08a70'}">${ic('refresh')}</span><span class="lb">${SYNC.online?'Mit Server verbunden':'Offline'}</span><span class="vl">${syncLabel()}</span><span class="chev">${ic('chev')}</span></button></div>`:''}
  <div class="group"><button class="gi" data-act="logout"><span class="ic" style="background:#8a6a4a">${ic('logout')}</span><span class="lb">Abmelden</span><span class="vl">${U(ME).name}</span><span class="chev">${ic('chev')}</span></button></div>
  <div class="group"><button class="gi red" data-act="reset"><span class="ic" style="background:#c0392b">${ic('refresh')}</span><span class="lb">${syncOn()?'Daten neu vom Server laden':'Daten zurücksetzen'}</span></button></div>
- <p class="note">Angemeldet als ${U(ME).name}. ${syncOn()?'Bewertungen, Tastings und Mitteilungen werden über den HopfenMatch-Server zwischen Saschas und Martins Handy geteilt. Offline gespeicherte Änderungen werden automatisch nachgesendet.':'Sascha und Martin teilen sich auf diesem Gerät dieselben Daten. „Zurücksetzen“ stellt die Beispieldaten wieder her.'}</p>`};
+ <p class="note">Angemeldet als ${U(ME).name}. ${syncOn()?'Bewertungen, Tastings und Mitteilungen werden über den HopfenMatch-Server zwischen Saschas und Martins Handy geteilt. Offline gespeicherte Änderungen werden automatisch nachgesendet.':'Sascha und Martin teilen sich auf diesem Gerät dieselben Daten. „Zurücksetzen“ löscht alle Bewertungen und Tastings.'}</p>`};
 };
 PAGES.friend=({seg})=>{
  const s=seg||'matches';const his=rList(FR),ms=matches();
  const both=rList(ME).filter(r=>rOf(FR,r.beer));
  const avg=his.length?Math.round(his.reduce((a,r)=>a+r.score,0)/his.length):0;
  let body='';
- if(s==='matches')body=ms.length?`<div class="stack">${ms.map(r=>{const b=B(r.beer),o=rOf(FR,r.beer);return `<button class="card lrow pressable" data-go="beer" data-id="${b.id}"><div class="pic">${thumb(b)}</div><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.style)} · ${esc(b.brewery)}</div></div><span class="mini">${av(ME)}${r.score}</span><span class="mini">${av(FR)}${o.score}</span></button>`}).join('')}</div>`:'<div class="card empty">Noch keine Matches.</div>';
- if(s==='list')body=`<div class="rlist">${his.map((r,i)=>rankRow(r,i,FR)).join('')}</div>`;
+ if(s==='matches')body=ms.length?`<div class="stack">${ms.map(r=>{const b=B(r.beer),o=rOf(FR,r.beer);return `<button class="card lrow pressable" data-go="beer" data-id="${b.id}"><div class="pic">${thumb(b)}</div><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.style)} · ${esc(b.brewery)}</div></div><span class="mini">${av(ME)}${r.score}</span><span class="mini">${av(FR)}${o.score}</span></button>`}).join('')}</div>`:emptyCard('heartf','Noch keine Matches','Ein Match entsteht, wenn ihr beide dasselbe Bier mit über 90 Punkten bewertet.','',true);
+ if(s==='list')body=his.length?`<div class="rlist">${his.map((r,i)=>rankRow(r,i,FR)).join('')}</div>`:emptyCard('trophy',`${FN()} hat noch nichts bewertet`,'Seine Rangliste füllt sich mit jeder Bewertung.','',true);
+ if(s==='cmp'&&!both.length)body=emptyCard('people','Noch nichts zu vergleichen','Bewertet ihr beide dasselbe Bier, seht ihr hier eure Punkte nebeneinander.','',true);else
  if(s==='cmp')body=`<div class="card" style="padding:4px 0"><div class="cmp" style="padding-bottom:2px"><span class="pic"></span><span class="nm" style="color:#8a7e74;font-size:12px">${both.length} gemeinsam bewertete Biere</span><span class="h">Du</span><span class="h">${FN()}</span></div>${both.map(r=>{const b=B(r.beer),o=rOf(FR,r.beer);return `<button class="cmp" data-go="beer" data-id="${b.id}"><span class="pic">${thumb(b)}</span><span class="nm">${esc(b.name)}</span><span class="v ${r.score>90?'hi':''}">${r.score}</span><span class="v ${o.score>90?'hi':''}">${o.score}</span></button>`}).join('')}</div>`;
  return {title:FN(),short:FN(),body:`<div class="prof">${av(FR)}<h2>${esc(U(FR).full)}</h2><div class="hs">${U(FR).handle} · Freund seit ${U(FR).since}</div>
  <div class="stats"><div class="stat"><b>${his.length}</b><small>Bewertungen</small></div><div class="stat"><b>${ms.length}</b><small>Matches</small></div><div class="stat"><b>${avg}</b><small>Ø Punkte</small></div></div></div>
@@ -398,7 +389,7 @@ PAGES.friend=({seg})=>{
  <div style="margin-top:12px">${body}</div>`};
 };
 PAGES.tasting=({id})=>{const t=S.tastings.find(x=>x.id===id);return {title:t?t.name:'Tasting',short:'Tasting',body:`<div style="height:4px"></div>${tastingBlock(t)}${t&&t.status!=='live'?`<div class="btnrow"><button class="btn danger" data-act="delTasting" data-id="${t.id}">${ic('trash')} Abend löschen</button></div>`:''}`}};
-PAGES.tastings=()=>({title:'Alle Tastings',body:`<div class="stack" style="margin-top:6px">${S.tastings.slice().sort((a,b)=>b.date-a.date).map(ocard).join('')}</div><div class="btnrow"><button class="btn gold" data-act="newTasting">${ic('plus')} Neuen Abend planen</button></div>`});
+PAGES.tastings=()=>({title:'Alle Tastings',body:`<div class="stack" style="margin-top:6px">${S.tastings.slice().sort((a,b)=>b.date-a.date).map(ocard).join('')||emptyCard('cal','Noch keine Tastings','Lege deinen ersten Tasting-Abend an.','',true)}</div><div class="btnrow"><button class="btn gold" data-act="newTasting">${ic('plus')} Neuen Abend planen</button></div>`});
 
 /* Live-Tasting */
 PAGES.live=({id},p)=>{
@@ -475,13 +466,15 @@ function rateSheet(beerId,fixed){
 function drawRate(){
  const host=$('#rate');if(!host)return;
  if(!RATE.beer){
-  const q=RATE.q.toLowerCase();
-  const list=beers().filter(b=>!q||(b.name+' '+b.brewery+' '+b.style).toLowerCase().includes(q)).sort((a,b)=>{const ra=rOf(ME,a.id)?1:0,rb=rOf(ME,b.id)?1:0;return ra-rb||a.name.localeCompare(b.name,'de')});
   host.innerHTML=`<div class="sheet-hd"><button class="l" data-act="closeSheet">Abbrechen</button><h3>Bier bewerten</h3><span class="r"></span></div>
-  <div class="sheet-body"><div class="search">${ic('search')}<input id="rq" placeholder="Bier oder Brauerei suchen" value="${esc(RATE.q)}" autocomplete="off"></div>
+  <div class="sheet-body"><div class="search">${ic('search')}<input id="rq" type="search" placeholder="Bier, Brauerei, Stil oder Land" value="${esc(RATE.q)}" autocomplete="off" autocorrect="off" spellcheck="false"></div>
   <button class="card lrow pressable" data-act="newBeer" style="margin-top:10px"><span class="pic" style="color:#d8921a;font-size:28px;width:40px;height:44px">${ic('plus')}</span><div class="tx"><div class="nm">Neues Bier anlegen</div><div class="sb">Nicht im Katalog? Einfach selbst hinzufügen.</div></div><span class="chev">${ic('chev')}</span></button>
-  <div class="lbl">Katalog · ${list.length} Biere</div><div class="group" id="rlist">${list.map(b=>{const r=rOf(ME,b.id);return `<button class="pickrow" data-pick="${b.id}"><span class="pic">${thumb(b)}</span><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.brewery)} · ${esc(b.style)} · ${fmtAbv(b.abv)}</div></div>${r?`<span class="yr">${r.score}</span>`:''}</button>`}).join('')||'<div class="empty">Nichts gefunden. Lege das Bier einfach neu an.</div>'}</div></div>`;
-  const inp=$('#rq');inp.addEventListener('input',()=>{RATE.q=inp.value;const pos=inp.selectionStart;drawRate();const n=$('#rq');n.focus();n.setSelectionRange(pos,pos)});
+  <div class="lbl" id="rcount"></div><div class="group" id="rlist"></div></div>`;
+  const sb=$('.sheet-body',host),inp=$('#rq');
+  const fill=()=>{const list=searchBeers(RATE.q,{}).sort((a,b)=>(rOf(ME,a.id)?1:0)-(rOf(ME,b.id)?1:0));
+   $('#rcount').textContent=(RATE.q?'Treffer':'Katalog')+' · '+list.length+' Biere';
+   lazyList($('#rlist'),sb,list,b=>{const r=rOf(ME,b.id);return `<button class="pickrow" data-pick="${b.id}"><span class="pic">${thumb(b)}</span><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.brewery)} · ${esc(b.style)} · ${fmtAbv(b.abv)}</div></div>${r?`<span class="yr">${r.score}</span>`:''}</button>`},'<div class="empty">Nichts gefunden. Lege das Bier einfach neu an.</div>')};
+  fill();let qt;inp.addEventListener('input',()=>{RATE.q=inp.value;clearTimeout(qt);qt=setTimeout(fill,90)});
   return;
  }
  const b=B(RATE.beer), o=rOf(FR,b.id);
@@ -545,7 +538,7 @@ function newBeerSheet(after){
 function nbSave(){
  const st=NB.st;const name=st.name.trim();if(!name){toast('Bitte einen Namen eingeben','info');$('#nbn').focus();return}
  const id='c-'+uid();const abv=parseFloat(String(st.abv).replace(',','.'))||5;
- S.customBeers.push({id,name,brewery:st.brewery.trim()||'Unbekannte Brauerei',style:st.style,abv,origin:'',custom:true,by:ME,desc:'Von '+U(ME).name+' angelegt.',svg:nbSvg(st)});save();
+ S.customBeers.push({id,name,brewery:st.brewery.trim()||'Unbekannte Brauerei',style:st.style,abv,origin:'',country:'DE',custom:true,by:ME,desc:'Von '+U(ME).name+' angelegt.',svg:nbSvg(st)});save();
  const after=NB.after;NB=null;
  if(after)after(id);else rateSheet(id,true);
  toast('Bier angelegt','check');
@@ -564,14 +557,16 @@ function tastingSheet(t,preBeer){
  <div class="field"><label>Ort</label><input id="tsp" value="${t?esc(t.place):'Bei mir'}"></div>
  <div class="field"><label>Notiz</label><input id="tso" placeholder="optional" value="${t?esc(t.note||''):''}"></div>
  <div class="lbl">Teilnehmer</div><div class="group"><div class="pickrow on"><span class="av" style="width:36px;height:36px"><img src="${U(host).img}" alt=""></span><div class="tx"><div class="nm">${nmOf(host)} (Gastgeber)</div></div><span class="ck">${ic('check')}</span></div><button class="pickrow ${st.parts.includes(other)?'on':''}" data-tpart="${other}"><span class="av" style="width:36px;height:36px"><img src="${U(other).img}" alt=""></span><div class="tx"><div class="nm">${nmOf(other)}</div><div class="sb">${matches().length} Matches</div></div><span class="ck">${ic('check')}</span></button></div>
- <div class="lbl">Bier-Liste · <span id="tscount">${st.beers.length}</span> ausgewählt</div><div class="search">${ic('search')}<input id="tsq" placeholder="Biere filtern" autocomplete="off"></div>
- <div class="group" id="tsbeers" style="margin-top:8px">${beers().map(b=>`<button class="pickrow ${st.beers.includes(b.id)?'on':''}" data-tbeer="${b.id}" data-s="${esc((b.name+' '+b.brewery+' '+b.style).toLowerCase())}"><span class="pic">${thumb(b)}</span><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.style)} · ${fmtAbv(b.abv)}</div></div><span class="ck">${ic('check')}</span></button>`).join('')}</div>
+ <div class="lbl">Bier-Liste · <span id="tscount">${st.beers.length}</span> ausgewählt</div><div class="search">${ic('search')}<input id="tsq" type="search" placeholder="Biere suchen" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+ <div class="group" id="tsbeers" style="margin-top:8px"></div>
  <div class="btnrow"><button class="btn gold" data-act="tsSave">${ic('check')} ${isNew?'Abend anlegen':'Änderungen sichern'}</button></div>
  ${!isNew?`<div class="btnrow" style="margin-top:8px"><button class="btn danger" data-act="delTasting" data-id="${t.id}">${ic('trash')} Abend löschen</button></div>`:''}</div>`,{full:true});
  sh.addEventListener('click',e=>{const pb=e.target.closest('[data-tbeer]'),pp=e.target.closest('[data-tpart]');
   if(pb){const id=pb.dataset.tbeer,i=st.beers.indexOf(id);if(i>=0)st.beers.splice(i,1);else st.beers.push(id);pb.classList.toggle('on',i<0);$('#tscount').textContent=st.beers.length}
   if(pp){const i=st.parts.indexOf(other);if(i>=0)st.parts.splice(i,1);else st.parts.push(other);pp.classList.toggle('on',i<0)}});
- $('#tsq').addEventListener('input',e=>{const q=e.target.value.toLowerCase();$$('[data-tbeer]',sh).forEach(x=>x.style.display=!q||x.dataset.s.includes(q)?'':'none')});
+ const tsRow=b=>`<button class="pickrow ${st.beers.includes(b.id)?'on':''}" data-tbeer="${b.id}"><span class="pic">${thumb(b)}</span><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.style)} · ${fmtAbv(b.abv)}</div></div><span class="ck">${ic('check')}</span></button>`;
+ const tsFill=q=>{const L=searchBeers(q,{});if(!q)L.sort((a,b)=>(st.beers.includes(b.id)?1:0)-(st.beers.includes(a.id)?1:0));lazyList($('#tsbeers'),$('.sheet-body',sh),L,tsRow,'<div class="empty">Nichts gefunden.</div>')};
+ tsFill('');let tq;$('#tsq').addEventListener('input',e=>{clearTimeout(tq);tq=setTimeout(()=>tsFill(e.target.value),90)});
  TS={st,t};
 }
 function tsSave(){
@@ -602,11 +597,13 @@ function tbeerSheet(tid,bid){
 let AB=null;
 function addBeerSheet(tid){
  const t=S.tastings.find(x=>x.id===tid);
- const sh=openSheet(`<div class="sheet-hd"><button class="l" data-act="closeSheet">Abbrechen</button><h3>Bier hinzufügen</h3><button class="r" data-act="closeSheet">Fertig</button></div><div class="sheet-body"><div class="search">${ic('search')}<input id="abq" placeholder="Bier suchen" autocomplete="off"></div>
+ const sh=openSheet(`<div class="sheet-hd"><button class="l" data-act="closeSheet">Abbrechen</button><h3>Bier hinzufügen</h3><button class="r" data-act="closeSheet">Fertig</button></div><div class="sheet-body"><div class="search">${ic('search')}<input id="abq" type="search" placeholder="Bier, Brauerei, Stil oder Land" autocomplete="off" autocorrect="off" spellcheck="false"></div>
  <button class="card lrow pressable" data-act="abNew" style="margin-top:10px"><span class="pic" style="color:#d8921a;font-size:28px;width:40px;height:44px">${ic('plus')}</span><div class="tx"><div class="nm">Neues Bier anlegen</div></div></button>
- <div class="group" style="margin-top:10px">${beers().map(b=>`<button class="pickrow ${t.beers.includes(b.id)?'on':''}" data-abeer="${b.id}" data-s="${esc((b.name+' '+b.brewery).toLowerCase())}"><span class="pic">${thumb(b)}</span><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.brewery)} · ${esc(b.style)}</div></div><span class="ck">${ic('check')}</span></button>`).join('')}</div></div>`,{full:true,onclose:()=>setTimeout(renderAll,10)});
+ <div class="group" id="abl" style="margin-top:10px"></div></div>`,{full:true,onclose:()=>setTimeout(renderAll,10)});
  sh.addEventListener('click',e=>{const pb=e.target.closest('[data-abeer]');if(!pb)return;const id=pb.dataset.abeer,i=t.beers.indexOf(id);if(i>=0){t.beers.splice(i,1);delete t.scores[id]}else t.beers.push(id);pb.classList.toggle('on',i<0);save()});
- $('#abq').addEventListener('input',e=>{const q=e.target.value.toLowerCase();$$('[data-abeer]',sh).forEach(x=>x.style.display=!q||x.dataset.s.includes(q)?'':'none')});
+ const abRow=b=>`<button class="pickrow ${t.beers.includes(b.id)?'on':''}" data-abeer="${b.id}"><span class="pic">${thumb(b)}</span><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.brewery)} · ${esc(b.style)}</div></div><span class="ck">${ic('check')}</span></button>`;
+ const abFill=q=>{const L=searchBeers(q,{});if(!q)L.sort((a,b)=>(t.beers.includes(b.id)?1:0)-(t.beers.includes(a.id)?1:0));lazyList($('#abl'),$('.sheet-body',sh),L,abRow,'<div class="empty">Nichts gefunden.</div>')};
+ abFill('');let aq;$('#abq').addEventListener('input',e=>{clearTimeout(aq);aq=setTimeout(()=>abFill(e.target.value),90)});
  AB=t;
 }
 function toTastingSheet(bid){
@@ -708,11 +705,11 @@ function handleAct(a,el){
   case 'shareResult':{const t=S.tastings.find(x=>x.id===id),w=winner(t);const txt=`🍻 ${t.name}: Sieger ist ${w?B(w.b).name+' mit Ø '+w.a:'–'}! #HopfenMatch`;if(navigator.share)navigator.share({title:'HopfenMatch',text:txt}).catch(()=>{});else{navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{});toast('Ergebnis kopiert','copy')}break}
   case 'toTasting':toTastingSheet(id);break;
   case 'readAll':myNotifs().forEach(n=>n.read=true);save();renderAll();toast('Alles gelesen','check');break;
-  case 'reset':if(syncOn()){confirmDlg('Neu vom Server laden?','Der lokale Zwischenspeicher wird verworfen und alle Daten werden neu vom Server geladen. Noch nicht gesendete Änderungen gehen verloren.','Neu laden',()=>{resetCache();toast('Lade Daten vom Server …','refresh')});break}confirmDlg('Daten zurücksetzen?','Alle eigenen Bewertungen, Tastings und Einstellungen werden gelöscht und die Beispieldaten wiederhergestellt.','Zurücksetzen',()=>{localStorage.removeItem(LS);seed();closeAllPages();RFILTER='all';TAB='';showTab('start');renderAll();toast('Beispieldaten wiederhergestellt','refresh')});break;
+  case 'reset':if(syncOn()){confirmDlg('Neu vom Server laden?','Der lokale Zwischenspeicher wird verworfen und alle Daten werden neu vom Server geladen. Noch nicht gesendete Änderungen gehen verloren.','Neu laden',()=>{resetCache();toast('Lade Daten vom Server …','refresh')});break}confirmDlg('Daten zurücksetzen?','Alle Bewertungen, Tastings und Mitteilungen auf diesem Gerät werden gelöscht.','Zurücksetzen',()=>{localStorage.removeItem(LS);seed();closeAllPages();RFILTER='all';TAB='';showTab('start');renderAll();toast('Alles auf null gesetzt','refresh')});break;
   case 'install':infoDlg('Als App installieren','iPhone (Safari): Tippe unten auf <b>Teilen</b> und wähle <b>„Zum Home-Bildschirm“</b>. HopfenMatch startet dann im Vollbild wie eine echte App – auch offline.');break;
   case 'logout':confirmDlg('Abmelden?',`Du bist als ${U(ME).name} angemeldet. Danach kann sich ${FN()} oder du wieder anmelden.`,'Abmelden',logout,false);break;
   case 'syncNow':sync(true).then(()=>{toast(SYNC.online?'Synchronisiert':'Offline – Änderungen werden später gesendet',SYNC.online?'check':'info');const p=curPage();p&&refreshPage(p)});break;
-  case 'about':infoDlg('HopfenMatch 1.2','Gute Biere. Gute Leute.<br>Bewerte Biere von 0–100, finde Bier-Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende.');break;
+  case 'about':infoDlg('HopfenMatch 1.3',`Gute Biere. Gute Leute.<br>Bewerte Biere von 0–100, finde Bier-Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende.<br><br>Katalog: ${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern.`);break;
   case 'ovClose':$('#overlay').classList.remove('on');break;
   case 'ovPlan':$('#overlay').classList.remove('on');tastingSheet(null,id);break;
  }
@@ -816,8 +813,12 @@ async function sync(force){
   if(!(await ensureToken()))throw Object.assign(new Error('Kein Token'),{status:navigator.onLine===false?0:401,soft:true});
   const first=SY.rev==null,items=first?[]:myPending().slice(0,400);
   const beforeN=new Set(myNotifs().map(n=>n.id));
-  const res=await api('/sync',{method:'POST',body:{since:first?0:SY.rev,items}});
+  const res=await api('/sync',{method:'POST',body:{since:first?0:SY.rev,items,epoch:SY.epoch||DATA_EPOCH}});
   if(ME!==me)return;
+  if(res.resetRequired){
+   // Daten wurden auf dem Server neu gestartet: lokalen Stand verwerfen und frisch laden
+   wipeLocal(res.epoch);closeAllPages();renderAll();SYNC.online=true;SYNC.again=true;return;
+  }
   const rej=new Set((res.rejected||[]).map(x=>x.kind+'/'+x.id));
   items.forEach(it=>{const k=it.kind+'/'+it.id;if(it.del)delete SY.snap[k];else if(!rej.has(k))SY.snap[k]=canon(it.data)});
   rej.forEach(k=>delete SY.snap[k]);
@@ -838,8 +839,8 @@ async function sync(force){
  }
 }
 function rerenderSoft(){
- // Tabs + offene Seiten neu zeichnen, ohne offene Sheets zu stören
- TABS.forEach(renderTab);STACK.forEach(p=>refreshPage(p));
+ // Tabs + offene Seiten neu zeichnen, ohne offene Sheets zu stören (Katalog bleibt stehen)
+ TABS.forEach(renderTab);STACK.forEach(p=>{if(!p.static)refreshPage(p)});
 }
 function syncLabel(){const n=myPending().length;if(!SYNC.online)return n?`${n} Änderung${n===1?'':'en'} warten`:'Daten lokal';if(n)return `${n} wird gesendet …`;if(!SY.last)return '–';const s=Math.round((Date.now()-SY.last)/1000);return s<5?'gerade eben':s<60?`vor ${s} s`:rel(SY.last)}
 function pollLoop(){
@@ -849,6 +850,68 @@ function pollLoop(){
  SYNC.poll=setTimeout(async()=>{if(!document.hidden)await sync();pollLoop()},iv);
 }
 function resetCache(){SY.rev=null;SY.snap={};saveSync();S=fromItems({});save(true);closeAllPages();renderAll();sync(true)}
+/* ---------- Katalog: Suche, Lazy-Listen, Seite ---------- */
+const CAT={q:'',g:'',c:''};
+function nrm(s){return HM_CATALOG.norm(s)}
+function hayOf(b){if(!b.hay){const C=COUNTRIES[b.country]||['',''];b.hay=nrm([b.name,b.brewery,b.style,b.origin||'',C[0],(STYLE_META[b.style]||{}).g||''].join(' '))}if(!b.words)b.words=[...new Set(b.hay.split(/[^a-z0-9]+/).filter(w=>w.length>2))];return b.hay}
+function ed1(a,b){ // Editierdistanz <= 1 (Tippfehler: fehlend, zu viel, vertauscht, falsch)
+ if(a===b)return true;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;
+ let i=0;while(i<la&&i<lb&&a[i]===b[i])i++;
+ if(la===lb){if(a.slice(i+1)===b.slice(i+1))return true;return a[i]===b[i+1]&&a[i+1]===b[i]&&a.slice(i+2)===b.slice(i+2)}
+ return la>lb?a.slice(i+1)===b.slice(i):a.slice(i)===b.slice(i+1)}
+function tokOk(b,t){const h=hayOf(b);if(h.includes(t))return 2;if(t.length<4)return 0;
+ for(const w of b.words){if(ed1(t,w)||(w.length>t.length&&ed1(t,w.slice(0,t.length)))||(w.length>t.length&&ed1(t,w.slice(0,t.length+1))))return 1}return 0}
+function searchBeers(q,{g,c}={}){
+ const toks=nrm(q||'').split(/[^a-z0-9]+/).filter(Boolean);
+ const out=[];
+ for(const b of beers()){
+  if(g&&styleGroup(b.style)!==g)continue;if(c&&(b.country||'DE')!==c)continue;
+  if(!toks.length){out.push({b,s:0});continue}
+  let sc=0,ok=true;for(const t of toks){const r=tokOk(b,t);if(!r){ok=false;break}sc+=r}
+  if(!ok)continue;const nn=nrm(b.name);if(nn.startsWith(toks[0]))sc+=3;else if(nn.includes(toks[0]))sc+=1;
+  out.push({b,s:sc})}
+ out.sort((x,y)=>y.s-x.s||x.b.name.localeCompare(y.b.name,'de'));
+ return out.map(x=>x.b);
+}
+const flag=b=>(COUNTRIES[b.country||'DE']||['',''])[1];
+/* Lazy-Liste: rendert in Häppchen, sobald das Ende in Sichtweite kommt (IntersectionObserver) */
+function lazyList(host,scroller,items,row,empty,min){
+ if(host._io)host._io.disconnect();
+ const CH=40;let n=0;host.innerHTML='';
+ if(!items.length){host.innerHTML=empty||'';return}
+ const sent=document.createElement('div');sent.className='lz-sent';
+ const more=k=>{const part=items.slice(n,n+k);n+=part.length;sent.remove();host.insertAdjacentHTML('beforeend',part.map(row).join(''));if(n<items.length)host.appendChild(sent);else if(host._io)host._io.disconnect()};
+ more(Math.max(CH,min||0));
+ if(n<items.length&&'IntersectionObserver' in window){host._io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))more(CH)},{root:scroller||null,rootMargin:'600px 0px'});host._io.observe(sent)}
+ else if(n<items.length)more(items.length);
+ host._count=()=>n;
+}
+function catRow(b){const r=rOf(ME,b.id),o=rOf(FR,b.id);
+ return `<button class="card crow pressable" data-go="beer" data-id="${b.id}"><div class="pic">${thumb(b)}</div><div class="tx"><div class="nm">${esc(b.name)}</div><div class="sb">${esc(b.brewery)}</div><div class="sb">${esc(b.style)} · ${fmtAbv(b.abv)} · ${flag(b)} ${esc((b.origin||'').split(',')[0])}</div></div>${r?`<span class="scorepill"><b>${r.score}</b>/100</span>`:o&&o.score>90?`<span class="pill-mini">${av(FR)}${o.score}</span>`:`<span class="chev">${ic('chev')}</span>`}</button>`}
+PAGES.catalog=(prm,p)=>{
+ p.static=true; // nicht beim Polling neu zeichnen (Suchfeld behält Fokus)
+ const all=beers(),gc={},cc={};all.forEach(b=>{const g=styleGroup(b.style);gc[g]=(gc[g]||0)+1;const c=b.country||'DE';cc[c]=(cc[c]||0)+1});
+ const countries=Object.keys(cc).sort((a,b)=>cc[b]-cc[a]||(COUNTRIES[a]||[a])[0].localeCompare((COUNTRIES[b]||[b])[0],'de'));
+ return {title:'Bierkatalog',short:'Katalog',body:`<div class="cat-hd"><div class="search">${ic('search')}<input id="cq" type="search" placeholder="Bier, Brauerei, Stil oder Land" value="${esc(CAT.q)}" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"></div>
+ <div class="filters" id="cg"><button class="fchip ${!CAT.g?'on':''}" data-cg="">Alle Stile <span class="n">${all.length}</span></button>${STYLE_GROUPS.filter(g=>gc[g[0]]).map(g=>`<button class="fchip ${CAT.g===g[0]?'on':''}" data-cg="${g[0]}">${g[1]} <span class="n">${gc[g[0]]}</span></button>`).join('')}</div>
+ <div class="filters" id="cc" style="margin-top:-4px"><button class="fchip ${!CAT.c?'on':''}" data-cc="">🌍 Alle Länder</button>${countries.map(c=>`<button class="fchip ${CAT.c===c?'on':''}" data-cc="${c}">${(COUNTRIES[c]||['',''])[1]} ${esc((COUNTRIES[c]||[c])[0])} <span class="n">${cc[c]}</span></button>`).join('')}</div></div>
+ <div class="lbl" id="ccount"></div><div class="stack" id="clist"></div>`,
+ after:el=>{
+  const sc=$('.pbody',el),inp=$('#cq',el);
+  const fill=keep=>{const L=searchBeers(CAT.q,{g:CAT.g,c:CAT.c});
+   $('#ccount',el).textContent=L.length+(L.length===1?' Bier':' Biere')+(CAT.q||CAT.g||CAT.c?' gefunden':' im Katalog');
+   lazyList($('#clist',el),sc,L,catRow,emptyCard('search','Nichts gefunden','Probier einen anderen Suchbegriff oder Filter – oder lege das Bier selbst an.',`<button class="btn gold sm" data-act="newBeer">${ic('plus')} Neues Bier</button>`,true),keep?p.shown:0);
+   p.shown=0};
+  fill(true);
+  let qt;inp.addEventListener('input',()=>{CAT.q=inp.value;clearTimeout(qt);qt=setTimeout(()=>{fill();sc.scrollTop=0},90)});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur()});
+  el.addEventListener('click',e=>{const g=e.target.closest('[data-cg]'),c=e.target.closest('[data-cc]');if(!g&&!c)return;e.stopPropagation();
+   if(g){CAT.g=g.dataset.cg;$$('[data-cg]',el).forEach(x=>x.classList.toggle('on',x===g))}
+   if(c){CAT.c=c.dataset.cc;$$('[data-cc]',el).forEach(x=>x.classList.toggle('on',x===c))}
+   (g||c).scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});fill();sc.scrollTop=0},true);
+  p.cleanup=()=>{const l=$('#clist',el);if(l&&l._io)l._io.disconnect()};
+ }};
+};
 function likeNotify(k){
  let owner=null,txt='';
  if(k.startsWith('c-')){const c=S.checkins.find(x=>'c-'+x.id===k);if(c){owner=c.user;txt=`gefällt, dass du <b>${esc(B(c.beer).short||B(c.beer).name)}</b> trinkst 👍`}}
@@ -873,7 +936,7 @@ function drawLogin(dir){
   el.innerHTML=`<div class="lg-in ${dir||''}">${logo}<h1 class="lg-h">Wer trinkt heute mit?</h1><p class="lg-p">Wähle dein Profil, um dich anzumelden.</p>
   <div class="lg-cards">${card('sascha')}${card('martin')}</div>
   <div class="lg-deco"><img src="img/hop_illu.webp" alt=""></div>
-  <p class="lg-foot">Sascha und Martin teilen sich auf diesem Gerät eine gemeinsame Bier-Datenbank.</p></div>`;
+  <p class="lg-foot">${syncOn()?'Sascha und Martin teilen ihre Bewertungen über den HopfenMatch-Server.':'Sascha und Martin teilen sich auf diesem Gerät eine gemeinsame Bier-Datenbank.'}</p></div>`;
  }else{
   const u=LG.user;
   el.innerHTML=`<div class="lg-in ${dir||''}"><button class="lg-back" data-lgact="back">${ic('back')}<span>Profile</span></button>
@@ -962,7 +1025,7 @@ function init(){
  }
  addEventListener('online',()=>{SYNC.online=true;sync(true)});addEventListener('offline',()=>{SYNC.online=false});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&LOGGED()){sync();pollLoop()}});
- window.HM={S:()=>S,me:()=>ME,sync,syncState:()=>SYNC,SY:()=>SY,pending:()=>myPending(),seedItems:()=>{const old=S;seed(true);const it=Object.values(itemsOf(S));S=old;return it},push,pop,showTab,rateSheet,matchOverlay,tastingSheet,inviteSheet,closeSheet,logout};
+ window.HM={S:()=>S,me:()=>ME,sync,syncState:()=>SYNC,SY:()=>SY,pending:()=>myPending(),searchBeers,catalogSize:()=>beers().length,push,pop,showTab,rateSheet,matchOverlay,tastingSheet,inviteSheet,closeSheet,logout};
 }
 init();
 })();
