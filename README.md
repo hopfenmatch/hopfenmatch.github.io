@@ -14,7 +14,7 @@ Nach Änderungen an JS/CSS in `sw.js` die Versionsnummer `CACHE='hopfenmatch-v1'
 damit installierte Apps die neuen Dateien laden.
 
 ## Anmeldung & Sync
-Beim Start wählt man Sascha oder Martin, Passwort für beide: BIER (wird serverseitig geprüft).
+Ab v1.6: Anmelden/Registrieren mit Name + Passwort (siehe unten). Sascha und Martin: Passwort BIER.
 Bewertungen, Aktivitäten/Likes, Mitteilungen und Tastings inkl. Live-Bewertung werden über den
 HopfenMatch-Server (Supabase Edge Function, siehe `server/`) zwischen beiden Handys geteilt
 (Polling alle 10 s, im Live-Tasting alle 3 s). Offline wird lokal weitergearbeitet, Änderungen
@@ -35,3 +35,17 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Neu u. a. Brauhaus Leikeim (Altenkunstadt, Bügelflaschen, 18 Sorten) und Familienbrauerei Jacob (Bodenwöhr, 21 Sorten), Sortiment und Alkoholgehalt nach den Brauerei-Websites.
 - Etikettfarben der neuen Biere aus Produktfotos abgeleitet; die Flaschen werden wie alle anderen als SVG gezeichnet.
 - Regionen-Filter im Katalog (Bundesland, für Bayern zusätzlich Franken, Oberbayern, Niederbayern, Oberpfalz, Schwaben); Suche findet auch Regionen („oberpfalz“) und gängige Schreibweisen („Leikheil“).
+
+## v1.6: Konten, Registrierung & Freunde (neue Adresse https://hopfenmatch.github.io/)
+- Startfenster mit „Anmelden“ / „Neu registrieren“; zuletzt auf dem Gerät angemeldete Konten als Schnellwahl.
+- Registrierung nur mit Name (eindeutig ohne Groß-/Kleinschreibung, 2–24 Zeichen) + Passwort (mind. 4, doppelt),
+  optional Profilfoto (wird im Browser auf 256×256 JPEG verkleinert), sonst Initialen-Avatar in Bierfarben. Keine E-Mail.
+- Sascha und Martin sind feste Alt-Konten (Passwort BIER, Groß-/Kleinschreibung egal), schon befreundet; ihre Daten bleiben.
+- Profil (Klick aufs eigene Bild): Name, Passwort (altes nötig), Profilbild ändern, Abmelden, Konto löschen.
+- Freunde: Suche „Freund finden“ (Teilstring), Anfrage senden/annehmen/ablehnen/zurückziehen, Freund entfernen.
+  Matches, Rangliste-Badges, Aktivitäten, Mitteilungen, Likes und Tastings funktionieren mit beliebig vielen Freunden.
+- Datenschutz (serverseitig): Bewertungen/Aktivitäten nur für Freunde, Tastings nur für Teilnehmer, Mitteilungen nur für
+  den Empfänger. Fremde sehen nur Name + Profilbild.
+- Server: Tabellen `hm_user` (PBKDF2-SHA256, 100 000 Iterationen, Salt je Konto), `hm_friend`, `hm_fail` (Rate-Limit),
+  Routen `/register`, `/login`, `/logout`, `/account`, `/friend`, `/sync`, `/avatar/:id` – siehe `server/`.
+  Die Daten-Epoche bleibt unverändert (keine Datenverluste). Backup: `node server/backup.js`.
