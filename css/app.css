@@ -620,3 +620,10 @@ html.locked #nav,html.locked #plus{visibility:hidden}
 .crow .pill-mini .av{width:18px;height:18px}
 .pickrow{content-visibility:auto;contain-intrinsic-size:auto 67px}
 .lz-sent{height:1px}
+
+/* ---------- Bounce: nativ (WebKit) oder JS-Federung ---------- */
+html.bounce-js,html.bounce-js body{overscroll-behavior:none}
+html.bounce-js .tabview,html.bounce-js .pbody,html.bounce-js .sheet-body{overscroll-behavior:none}
+html.bounce-native .tabview,html.bounce-native .pbody,html.bounce-native .sheet-body{overscroll-behavior-y:contain}
+.ob-on>*{transform:translate3d(0,var(--ob,0px),0);will-change:transform}
+.ob-anim>*{transition:transform .42s cubic-bezier(.17,.89,.32,1.12)}
