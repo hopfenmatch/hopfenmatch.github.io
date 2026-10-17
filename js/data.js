@@ -75,6 +75,8 @@ const SEED_RATINGS=[
  ['sascha','schlenkerla',74,55*D,'Schmeckt wie Schinken im Glas. Spannend, aber nicht meins.',['Rauchig','Malzig','Kräftig']],
  ['sascha','krombacher',72,60*D,'Standard-Pils, eher langweilig.',['Herb','Trocken']],
  ['sascha','becks',68,70*D,'Na ja – zum Grillen geht’s.',['Herb','Spritzig']],
+ ['sascha','weihenstephaner-vitus',91,42*D,'Weizenbock mit Wumms – Banane, Nelke, Honig. Ganz groß!',['Banane','Nelke','Vollmundig']],
+ ['sascha','schoenramer-pils',91,52*D,'Das beste Pils Bayerns, fein gehopft und blitzsauber.',['Hopfig','Herb','Erfrischend']],
  ['martin','guinness',90,5*H,'Röstig, cremig, unverwechselbar.',['Röstig','Cremig','Unverwechselbar']],
  ['martin','ayinger-kellerbier',96,8*H,'So süffig und ausgewogen! 😍',['Süffig','Ausgewogen','Naturtrüb']],
  ['martin','tegernseer-hell',92,10*D,'Ein bayerischer Klassiker! 🍺',['Malzig','Klassisch','Süffig']],

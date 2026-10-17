@@ -1,6 +1,6 @@
 /* HopfenMatch Service Worker – offline-fähig wie Galaxy Empire:
    HTML network-first (Updates kommen sofort an), alles andere cache-first. */
-const CACHE='hopfenmatch-v1';
+const CACHE='hopfenmatch-v2';
 const ASSETS=[
   "./",
   "./css/app.css",

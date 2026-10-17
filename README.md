@@ -13,9 +13,12 @@ Inhalt dieses Ordners in ein GitHub-Repo legen und GitHub Pages (Branch main, Or
 Nach Änderungen an JS/CSS in `sw.js` die Versionsnummer `CACHE='hopfenmatch-v1'` erhöhen,
 damit installierte Apps die neuen Dateien laden.
 
-## Daten
-Alles wird lokal im Browser gespeichert (localStorage, Schlüssel `hopfenmatch.v1`).
-Profil → „Beispieldaten zurücksetzen“ stellt den Ausgangszustand wieder her.
-Martins Aktionen (Live-Punkte, Zusagen, Likes) werden simuliert.
+## Anmeldung & Sync
+Beim Start wählt man Sascha oder Martin, Passwort für beide: BIER (wird serverseitig geprüft).
+Bewertungen, Aktivitäten/Likes, Mitteilungen und Tastings inkl. Live-Bewertung werden über den
+HopfenMatch-Server (Supabase Edge Function, siehe `server/`) zwischen beiden Handys geteilt
+(Polling alle 10 s, im Live-Tasting alle 3 s). Offline wird lokal weitergearbeitet, Änderungen
+werden automatisch nachgesendet. Profil → „Abmelden“ führt zurück zur Profilauswahl.
+`?nosync` startet die App rein lokal ohne Server.
 
 URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` (ohne Service Worker).
