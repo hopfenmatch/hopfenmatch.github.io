@@ -627,3 +627,9 @@ html.bounce-js .tabview,html.bounce-js .pbody,html.bounce-js .sheet-body{overscr
 html.bounce-native .tabview,html.bounce-native .pbody,html.bounce-native .sheet-body{overscroll-behavior-y:contain}
 .ob-on>*{transform:translate3d(0,var(--ob,0px),0);will-change:transform}
 .ob-anim>*{transition:transform .42s cubic-bezier(.17,.89,.32,1.12)}
+/* Nativer Bounce (WebKit) federt nur, wenn ein Container scrollbar ist: unsichtbarer, absolut positionierter
+   Platzhalter mit 100 % + 1px Höhe macht jeden Container mindestens 1px scrollbar – ohne Layoutänderung und
+   ohne dass Sheets mit Auto-Höhe wachsen (absolute Elemente zählen nur zum Scrollbereich, nicht zur Höhe). */
+html.bounce-native .pbody,html.bounce-native .sheet-body{position:relative}
+html.bounce-native .tabview::after,html.bounce-native .pbody::after,html.bounce-native .sheet-body::after,html.bounce-native .lg-in::after{content:'';position:absolute;top:0;left:0;width:1px;height:calc(100% + 1px);visibility:hidden;pointer-events:none}
+html.bounce-native .lg-in{overscroll-behavior-y:contain}
