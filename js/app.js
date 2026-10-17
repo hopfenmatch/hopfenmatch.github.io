@@ -851,7 +851,7 @@ function pollLoop(){
 }
 function resetCache(){SY.rev=null;SY.snap={};saveSync();S=fromItems({});save(true);closeAllPages();renderAll();sync(true)}
 /* ---------- Katalog: Suche, Lazy-Listen, Seite ---------- */
-const CAT={q:'',g:'',c:''};
+const CAT={q:'',g:'',c:'',r:''};
 function nrm(s){return HM_CATALOG.norm(s)}
 function hayOf(b){if(!b.hay){const C=COUNTRIES[b.country]||['',''];b.hay=nrm([b.name,b.brewery,b.style,b.origin||'',C[0],(STYLE_META[b.style]||{}).g||''].join(' '))}if(!b.words)b.words=[...new Set(b.hay.split(/[^a-z0-9]+/).filter(w=>w.length>2))];return b.hay}
 function ed1(a,b){ // Editierdistanz <= 1 (Tippfehler: fehlend, zu viel, vertauscht, falsch)
@@ -861,11 +861,12 @@ function ed1(a,b){ // Editierdistanz <= 1 (Tippfehler: fehlend, zu viel, vertaus
  return la>lb?a.slice(i+1)===b.slice(i):a.slice(i)===b.slice(i+1)}
 function tokOk(b,t){const h=hayOf(b);if(h.includes(t))return 2;if(t.length<4)return 0;
  for(const w of b.words){if(ed1(t,w)||(w.length>t.length&&ed1(t,w.slice(0,t.length)))||(w.length>t.length&&ed1(t,w.slice(0,t.length+1))))return 1}return 0}
-function searchBeers(q,{g,c}={}){
+function searchBeers(q,{g,c,r}={}){
  const toks=nrm(q||'').split(/[^a-z0-9]+/).filter(Boolean);
- const out=[];
+ const out=[],rb=r&&r.startsWith('by:')?r.slice(3):null;
  for(const b of beers()){
   if(g&&styleGroup(b.style)!==g)continue;if(c&&(b.country||'DE')!==c)continue;
+  if(r&&(rb?b.reg!==rb:b.state!==r))continue;
   if(!toks.length){out.push({b,s:0});continue}
   let sc=0,ok=true;for(const t of toks){const r=tokOk(b,t);if(!r){ok=false;break}sc+=r}
   if(!ok)continue;const nn=nrm(b.name);if(nn.startsWith(toks[0]))sc+=3;else if(nn.includes(toks[0]))sc+=1;
@@ -892,23 +893,29 @@ PAGES.catalog=(prm,p)=>{
  p.static=true; // nicht beim Polling neu zeichnen (Suchfeld behält Fokus)
  const all=beers(),gc={},cc={};all.forEach(b=>{const g=styleGroup(b.style);gc[g]=(gc[g]||0)+1;const c=b.country||'DE';cc[c]=(cc[c]||0)+1});
  const countries=Object.keys(cc).sort((a,b)=>cc[b]-cc[a]||(COUNTRIES[a]||[a])[0].localeCompare((COUNTRIES[b]||[b])[0],'de'));
+ const rc={},bc={};all.forEach(b=>{if(b.state){rc[b.state]=(rc[b.state]||0)+1;if(b.reg)bc[b.reg]=(bc[b.reg]||0)+1}});
+ const states=Object.keys(rc).filter(x=>x!=='Bayern').sort((a,b)=>rc[b]-rc[a]||a.localeCompare(b,'de'));
+ const regs=[['Bayern','Ganz Bayern',rc.Bayern],...((window.HM_CATALOG&&HM_CATALOG.BYREG)||[]).filter(x=>bc[x]).map(x=>['by:'+x,x,bc[x]]),...states.map(x=>[x,x,rc[x]])].filter(x=>x[2]);
  return {title:'Bierkatalog',short:'Katalog',body:`<div class="cat-hd"><div class="search">${ic('search')}<input id="cq" type="search" placeholder="Bier, Brauerei, Stil oder Land" value="${esc(CAT.q)}" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"></div>
  <div class="filters" id="cg"><button class="fchip ${!CAT.g?'on':''}" data-cg="">Alle Stile <span class="n">${all.length}</span></button>${STYLE_GROUPS.filter(g=>gc[g[0]]).map(g=>`<button class="fchip ${CAT.g===g[0]?'on':''}" data-cg="${g[0]}">${g[1]} <span class="n">${gc[g[0]]}</span></button>`).join('')}</div>
- <div class="filters" id="cc" style="margin-top:-4px"><button class="fchip ${!CAT.c?'on':''}" data-cc="">🌍 Alle Länder</button>${countries.map(c=>`<button class="fchip ${CAT.c===c?'on':''}" data-cc="${c}">${(COUNTRIES[c]||['',''])[1]} ${esc((COUNTRIES[c]||[c])[0])} <span class="n">${cc[c]}</span></button>`).join('')}</div></div>
+ <div class="filters" id="cc" style="margin-top:-4px"><button class="fchip ${!CAT.c?'on':''}" data-cc="">🌍 Alle Länder</button>${countries.map(c=>`<button class="fchip ${CAT.c===c?'on':''}" data-cc="${c}">${(COUNTRIES[c]||['',''])[1]} ${esc((COUNTRIES[c]||[c])[0])} <span class="n">${cc[c]}</span></button>`).join('')}</div>
+ ${regs.length?`<div class="filters" id="cr" style="margin-top:-4px"><button class="fchip ${!CAT.r?'on':''}" data-cr="">📍 Alle Regionen</button>${regs.map(x=>`<button class="fchip ${CAT.r===x[0]?'on':''} ${x[0].startsWith('by:')?'sub':''}" data-cr="${esc(x[0])}">${esc(x[1])} <span class="n">${x[2]}</span></button>`).join('')}</div>`:''}</div>
  <div class="lbl" id="ccount"></div><div class="stack" id="clist"></div>`,
  after:el=>{
   const sc=$('.pbody',el),inp=$('#cq',el);
-  const fill=keep=>{const L=searchBeers(CAT.q,{g:CAT.g,c:CAT.c});
-   $('#ccount',el).textContent=L.length+(L.length===1?' Bier':' Biere')+(CAT.q||CAT.g||CAT.c?' gefunden':' im Katalog');
+  const fill=keep=>{const L=searchBeers(CAT.q,{g:CAT.g,c:CAT.c,r:CAT.r});
+   $('#ccount',el).textContent=L.length+(L.length===1?' Bier':' Biere')+(CAT.q||CAT.g||CAT.c||CAT.r?' gefunden':' im Katalog');
    lazyList($('#clist',el),sc,L,catRow,emptyCard('search','Nichts gefunden','Probier einen anderen Suchbegriff oder Filter – oder lege das Bier selbst an.',`<button class="btn gold sm" data-act="newBeer">${ic('plus')} Neues Bier</button>`,true),keep?p.shown:0);
    p.shown=0};
   fill(true);
   let qt;inp.addEventListener('input',()=>{CAT.q=inp.value;clearTimeout(qt);qt=setTimeout(()=>{fill();sc.scrollTop=0},90)});
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur()});
-  el.addEventListener('click',e=>{const g=e.target.closest('[data-cg]'),c=e.target.closest('[data-cc]');if(!g&&!c)return;e.stopPropagation();
-   if(g){CAT.g=g.dataset.cg;$$('[data-cg]',el).forEach(x=>x.classList.toggle('on',x===g))}
-   if(c){CAT.c=c.dataset.cc;$$('[data-cc]',el).forEach(x=>x.classList.toggle('on',x===c))}
-   (g||c).scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});fill();sc.scrollTop=0},true);
+  const setOn=(a,v)=>$$('[data-'+a+']',el).forEach(x=>x.classList.toggle('on',x.dataset[a]===v));
+  el.addEventListener('click',e=>{const g=e.target.closest('[data-cg]'),c=e.target.closest('[data-cc]'),r=e.target.closest('[data-cr]');if(!g&&!c&&!r)return;e.stopPropagation();
+   if(g){CAT.g=g.dataset.cg;setOn('cg',CAT.g)}
+   if(c){CAT.c=c.dataset.cc;setOn('cc',CAT.c);if(CAT.c&&CAT.c!=='DE'&&CAT.r){CAT.r='';setOn('cr','')}}
+   if(r){CAT.r=r.dataset.cr;setOn('cr',CAT.r);if(CAT.r&&CAT.c!=='DE'){CAT.c='DE';setOn('cc','DE')}}
+   (g||c||r).scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});fill();sc.scrollTop=0},true);
   p.cleanup=()=>{const l=$('#clist',el);if(l&&l._io)l._io.disconnect()};
  }};
 };

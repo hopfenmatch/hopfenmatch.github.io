@@ -29,3 +29,9 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - `js/catalog.js`: über 600 echte Biere (Schwerpunkt Deutschland, dazu AT, CH, CZ, BE, NL, DK, UK/IE, USA, international) als kompakte Rohdaten; die Flaschen werden als SVG im Stil der bisherigen Grafiken gezeichnet.
 - Bierkatalog-Seite mit umlaut- und tippfehlertoleranter Suche, Stil- und Länderfiltern; lange Listen werden stückweise (lazy) gerendert.
 - Bounce/Gummiband am Listenende in allen Browsern (`js/bounce.js`): WebKit (alle iPhone-Browser, Safari macOS) federt nativ; Android-Chrome, Samsung Internet, Firefox und Desktop-Chrome/Edge/Firefox bekommen eine JS-Federung für Touch und Mausrad/Trackpad, Overscroll-Glow und Pull-to-Refresh sind per `overscroll-behavior` aus. Nie beides gleichzeitig. Test-Override: `?bounce=js|native|off`.
+
+## v1.5: Regionale Biere & Regionen-Filter
+- Katalog auf über 1.400 Biere erweitert: +794 Biere von 163 regionalen Brauereien, Schwerpunkt Bayern (Franken mit vielen Bamberger und fränkischen Landbrauereien, Oberpfalz, Niederbayern, Oberbayern, Schwaben/Allgäu) sowie BaWü, Hessen, RLP/Pfalz, Saarland, NRW, Niedersachsen, Schleswig-Holstein, MV, Thüringen, Sachsen, Sachsen-Anhalt, Brandenburg.
+- Neu u. a. Brauhaus Leikeim (Altenkunstadt, Bügelflaschen, 18 Sorten) und Familienbrauerei Jacob (Bodenwöhr, 21 Sorten), Sortiment und Alkoholgehalt nach den Brauerei-Websites.
+- Etikettfarben der neuen Biere aus Produktfotos abgeleitet; die Flaschen werden wie alle anderen als SVG gezeichnet.
+- Regionen-Filter im Katalog (Bundesland, für Bayern zusätzlich Franken, Oberbayern, Niederbayern, Oberpfalz, Schwaben); Suche findet auch Regionen („oberpfalz“) und gängige Schreibweisen („Leikheil“).
