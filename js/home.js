@@ -1,4 +1,4 @@
-/* HopfenMatch 1.8 – Startseite: 3D-Karussell aus gerenderten Flaschen (Blender Cycles, 36 Drehwinkel à 10° je Flasche, Retina-Auflösung). Drei fotorealistische Flaschen stehen auf einer unsichtbaren Drehplatte;
+/* HopfenMatch 1.8 – Startseite: 3D-Karussell aus gerenderten Flaschen (Blender Cycles, 72 Drehwinkel à 5° je Flasche, Retina-Auflösung, bewegungsabhängig überblendet). Drei fotorealistische Flaschen stehen auf einer unsichtbaren Drehplatte;
    Wischen dreht den ganzen Kreis (folgt dem Finger, Trägheit, Feder, endlos). Studiolicht bleibt stehen. */
 'use strict';
 (function(){
@@ -6,7 +6,9 @@ const KS=['bier','wein','whisky'],NAME={bier:'Bier',wein:'Wein',whisky:'Whisky'}
 const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ss=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
 /* Flaschen-Freisteller (Pixel im jeweiligen Bild) + reale Höhe in cm */
-const META={"bier":{"hcm":25.6,"wcm":7.0,"crop":[0.20904,0.17556,0.79096,1.0],"fw":206,"fh":742},"wein":{"hcm":30.0,"wcm":7.6,"crop":[0.18927,0.04333,0.81073,1.0],"fw":220,"fh":861},"whisky":{"hcm":25.8,"wcm":9.6,"crop":[0.07062,0.17,0.92938,0.99111],"fw":304,"fh":739}},FCM=33,FWCM=13,BASE=0.318/0.33,SEQ={n:36,step:10,cols:6,gut:2};
+const META={"bier":{"hcm":25.6,"wcm":7.0,"crop":[0.20904,0.17556,0.79096,1.0],"fw":206,"fh":742},"wein":{"hcm":30.0,"wcm":7.6,"crop":[0.18927,0.04333,0.81073,1.0],"fw":220,"fh":861},"whisky":{"hcm":25.8,"wcm":9.6,"crop":[0.07062,0.17,0.92938,0.99111],"fw":304,"fh":739}},FCM=33,FWCM=13,BASE=0.318/0.33,SEQ={n:72,step:5,cols:6,gut:2};
+/* Bogen-Raster: Blatt 1 = 20°, Blatt 2 = +10°, Blatt 3/4 = +5°/+15° (Index n%4 → Blatt) */
+const SHEET=['s1','s3','s2','s4'];
 /* Kamera: Abstand zur Drehachse D, Plattenradius RT, Kamerahöhe HC (cm) */
 const D=36,RT=8,HC=12;
 const C={bier:{ui:'#fbf0dc',sub:'#e8cfa6',btn:'#e3a332',btnInk:'#24140a'},
@@ -32,9 +34,10 @@ function build(){
  const ld=(src,cb)=>{const im=new Image();im.decoding='async';im.onload=()=>{cb(im);for(const k of KS)B[k].lp=null;render(P,true)};im.src=src;return im};
  KS.forEach(k=>{const cv=host.querySelector('.hm-b[data-k="'+k+'"]');B[k]={el:cv,ctx:cv.getContext('2d'),lp:null}});
  const first=KS.indexOf(opts.kat||'bier'),ord=[0,1,2].map(d=>KS[(first+d)%3]);
- // gestaffelt: Frontansicht der aktiven Flasche → je Flasche die geraden Winkel (20°-Raster, enthält alle Ruhelagen) → ungerade Winkel (10°) → übrige Frontansichten
+ // gestaffelt: Frontansicht der aktiven Flasche → 20°-Raster aller Flaschen (enthält alle Ruhelagen) → übrige Frontansichten → 10°-Zwischenwinkel → 5°-Zwischenwinkel
  ld('img/car_'+ord[0]+'.webp',im=>B[ord[0]].hi=im);
- setTimeout(()=>{ord.forEach(k=>ld('img/car_'+k+'_s1.webp',im=>B[k].s1=im));setTimeout(()=>{ord.forEach(k=>ld('img/car_'+k+'_s2.webp',im=>B[k].s2=im));ord.slice(1).forEach(k=>ld('img/car_'+k+'.webp',im=>B[k].hi=im))},250)},60);
+ const seqLd=(n,cb)=>{let c=ord.length;ord.forEach(k=>ld('img/car_'+k+'_'+n+'.webp',im=>{B[k][n]=im;if(--c===0&&cb)cb()}))};
+ setTimeout(()=>{seqLd('s1',()=>{ord.slice(1).forEach(k=>ld('img/car_'+k+'.webp',im=>B[k].hi=im));seqLd('s2',()=>{seqLd('s3');seqLd('s4')})})},60);
 }
 const E={};
 /* Layout aus der Bildschirmgröße: Brennweite so, dass die größte Flasche vorne zwischen Kopfzeile und Titel passt */
@@ -49,21 +52,22 @@ function resize(){if(!host)return;const r=host.getBoundingClientRect();if(!r.wid
   b.el.style.width=w+'px';b.el.style.height=h+'px';b.el.style.marginLeft=(-w/2)+'px';b.el.style.marginTop=(-base)+'px';b.el.style.transformOrigin='50% '+base+'px';
   b.el.width=Math.round(w*DPR);b.el.height=Math.round(h*DPR);b.lp=null});
  render(P,true)}
-let OF=null;const PY=[],PU=[],PS=[];
+let OF=null;const PY=[],PU=[],PU2=[],PS=[];
 /* Flasche k in Drehlage psi (Bogenmaß) zeichnen: Sprite-Frame (15°-Schritte, weich überblendet) bzw. scharfe Frontansicht in Ruhe */
-function frame(b,n){const par=n%2,sh=par?b.s2:b.s1;if(!sh)return null;const m=n>>1,fw=b.m.fw,fh=b.m.fh;return [sh,(m%SEQ.cols)*(fw+SEQ.gut),Math.floor(m/SEQ.cols)*(fh+SEQ.gut),fw,fh]}
+function frame(b,n){const sh=b[SHEET[n%4]];if(!sh)return null;const m=n>>2,fw=b.m.fw,fh=b.m.fh;return [sh,(m%SEQ.cols)*(fw+SEQ.gut),Math.floor(m/SEQ.cols)*(fh+SEQ.gut),fw,fh]}
+/* feinstes vollständig geladenes Raster (in 5°-Schritten): 1 = 5°, 2 = 10°, 4 = 20° */
+const grid=b=>b.s3&&b.s4&&b.s2?1:b.s2?2:4;
 function paint(k,psi,blur,rest){const b=B[k],m=META[k];b.m=m;if(!b.hi&&!b.s1)return;
- const W=b.el.width,HH=b.el.height,soft=blur*DPR>0.6;
+ const W=b.el.width,HH=b.el.height,soft=blur*DPR>0.46;
  if(soft){if(!OF)OF=document.createElement('canvas');if(OF.width<W||OF.height<HH){OF.width=Math.max(W,OF.width);OF.height=Math.max(HH,OF.height)}}
  const x=soft?OF.getContext('2d'):b.ctx;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,W,HH);x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
  const cr=m.crop,dx=cr[0]*W,dy=cr[1]*HH,dw=(cr[2]-cr[0])*W,dh=(cr[3]-cr[1])*HH;
- const deg=((psi*180/Math.PI)%360+360)%360,fi=deg/SEQ.step;let i0=Math.floor(fi)%SEQ.n,t=fi-Math.floor(fi),i1=(i0+1)%SEQ.n;
- const front=(deg<0.6||deg>359.4)&&b.hi&&(rest||!b.s1);
+ const deg=((psi*180/Math.PI)%360+360)%360,front=(deg<0.3||deg>359.7)&&b.hi&&(rest||!b.s1);
  if(front)x.drawImage(b.hi,dx,dy,dw,dh);
- else if(b.s1){let f0=frame(b,i0),f1=frame(b,i1);
-  if(!f0||!f1){/* nur 20°-Raster geladen */const e0=i0-(i0%2),e1=(e0+2)%SEQ.n;t=((fi-e0+SEQ.n)%SEQ.n)/2;f0=frame(b,e0);f1=frame(b,e1)}
-  const s=ss(.42,.58,t);/* meist ein scharfer Einzelwinkel, nur im Übergang additiv überblendet (keine Doppelkanten) */
-  if(s<.01||s>.99){const f=s>.99?f1:f0;x.drawImage(f[0],f[1],f[2],f[3],f[4],dx,dy,dw,dh)}
+ else if(b.s1){const g=grid(b),fi=deg/(SEQ.step*g),j0=Math.floor(fi),t=fi-j0,i0=(j0*g)%SEQ.n,i1=((j0+1)*g)%SEQ.n,f0=frame(b,i0),f1=frame(b,i1);
+  /* in Bewegung: stetige Überblendung zwischen den Nachbarwinkeln (kein Rucken); steht der Finger: scharfer Einzelwinkel */
+  const s=MB*t+(1-MB)*ss(.42,.58,t);
+  if(s<.004||s>.996){const f=s>.996?f1:f0;x.drawImage(f[0],f[1],f[2],f[3],f[4],dx,dy,dw,dh)}
   else{x.globalCompositeOperation='lighter';x.globalAlpha=1-s;x.drawImage(f0[0],f0[1],f0[2],f0[3],f0[4],dx,dy,dw,dh);x.globalAlpha=s;x.drawImage(f1[0],f1[1],f1[2],f1[3],f1[4],dx,dy,dw,dh);x.globalAlpha=1;x.globalCompositeOperation='source-over'}}
  else x.drawImage(b.hi,dx,dy,dw,dh);
  /* weicher Kontaktschatten unter der Flasche, hinter das Bild gelegt (keine Fläche, kein Rand) */
@@ -72,21 +76,27 @@ function paint(k,psi,blur,rest){const b=B[k],m=META[k];b.m=m;if(!b.hi&&!b.s1)ret
  ell(m.wcm/2*.98*pc,.075,-.05*pc,[[0,.72],[.7,.5],[1,0]]);/* Kontaktlinie direkt am Boden */
  ell(m.wcm/2*1.5*pc,.16,.05*pc,[[0,.38],[.5,.17],[1,0]]);/* weicher Schlagschatten */
  x.restore();
- if(soft){/* Tiefenunschärfe: Bildpyramide mit Zeltfilter (je Stufe 4 versetzte Abtastungen, additiv gemittelt) – weich, ohne Treppen, ohne teure CSS-Unschärfe */
-  const lv=Math.max(1,Math.min(4,Math.round(Math.log2(blur*DPR/0.9)+.5)));let src=OF,w=W,h=HH;
-  for(let n=0;n<lv;n++){const c=PY[n]||(PY[n]=document.createElement('canvas')),nw=Math.max(2,Math.ceil(w/2)),nh=Math.max(2,Math.ceil(h/2));
+ if(soft){/* Tiefenunschärfe: Bildpyramide mit Zeltfilter (je Stufe 4 versetzte Abtastungen, additiv gemittelt); stufenlos durch Überblenden zweier benachbarter Stufen (kein Springen) */
+  const lf=Math.max(0,Math.min(4,Math.log2(blur*DPR/0.9)+1)),L0=Math.floor(lf),L1=Math.min(4,L0+1),fr=lf-L0;let src=OF,w=W,h=HH;
+  for(let n=0;n<L1;n++){const c=PY[n]||(PY[n]=document.createElement('canvas')),nw=Math.max(2,Math.ceil(w/2)),nh=Math.max(2,Math.ceil(h/2));
    if(c.width<nw+2||c.height<nh+2){c.width=Math.max(nw+2,c.width);c.height=Math.max(nh+2,c.height)}const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);
    g.globalCompositeOperation='lighter';g.globalAlpha=.25;for(const [ox,oy] of [[-.5,-.5],[.5,-.5],[-.5,.5],[.5,.5]])g.drawImage(src,0,0,w,h,ox,oy,nw,nh);g.globalAlpha=1;g.globalCompositeOperation='source-over';
    src=c;w=nw;h=nh;PS[n]=[w,h]}
-  for(let n=lv-1;n>0;n--){const c=PU[n]||(PU[n]=document.createElement('canvas')),[nw,nh]=PS[n-1];if(c.width<nw+2||c.height<nh+2){c.width=Math.max(nw+2,c.width);c.height=Math.max(nh+2,c.height)}
-   const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.drawImage(src,0,0,w,h,0,0,nw,nh);src=c;w=nw;h=nh}
-  const y=b.ctx;y.setTransform(1,0,0,1,0,0);y.clearRect(0,0,W,HH);y.imageSmoothingEnabled=true;y.imageSmoothingQuality='high';y.drawImage(src,0,0,w,h,0,0,W,HH)}
+  const up=(L,U)=>{if(L===0)return [OF,W,HH];let src=PY[L-1],[w,h]=PS[L-1];
+   for(let n=L-1;n>0;n--){const c=U[n]||(U[n]=document.createElement('canvas')),[nw,nh]=PS[n-1];if(c.width<nw+2||c.height<nh+2){c.width=Math.max(nw+2,c.width);c.height=Math.max(nh+2,c.height)}
+    const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.drawImage(src,0,0,w,h,0,0,nw,nh);src=c;w=nw;h=nh}return [src,w,h]};
+  const y=b.ctx;y.setTransform(1,0,0,1,0,0);y.clearRect(0,0,W,HH);y.imageSmoothingEnabled=true;y.imageSmoothingQuality='high';
+  const A=up(L0,PU);if(fr<.01||L0===L1){y.drawImage(A[0],0,0,A[1],A[2],0,0,W,HH)}
+  else{const Bq=up(L1,PU2);y.globalCompositeOperation='lighter';y.globalAlpha=1-fr;y.drawImage(A[0],0,0,A[1],A[2],0,0,W,HH);y.globalAlpha=fr;y.drawImage(Bq[0],0,0,Bq[1],Bq[2],0,0,W,HH);y.globalAlpha=1;y.globalCompositeOperation='source-over'}}
 }
 /* Stellung im Kreis für Karussell-Position p */
 function pose(k,p){const i=KS.indexOf(k),a=(i-p)*2.0944;const xw=RT*Math.sin(a),zw=RT*Math.cos(a),dz=D-zw,sc=(D-RT)/dz;
  return {a,xw,zw,sc,X:CW/2+L.f*xw/dz,Y:L.y0+L.f*HC/dz,psi:a-Math.atan2(xw,dz),dd:Math.max(0,(1-Math.cos(a))/1.5)}}
-let lastP=null;
-function render(p,force){if(!host||!L)return;if(p===lastP&&!force)return;lastP=p;
+let lastP=null,MB=0,MBfix=null,mbT=0,mbA=0,mbLast=0;
+function moved(){if(MBfix!=null)return;MB=1;mbLast=performance.now();if(!mbT)mbT=setTimeout(idle,100)}
+function idle(){mbT=0;const w=performance.now()-mbLast;if(w<90){mbT=setTimeout(idle,95-w);return}
+ const t0=performance.now(),m0=MB;cancelAnimationFrame(mbA);const st=now=>{if(performance.now()-mbLast<90){mbA=0;return}MB=Math.max(0,m0*(1-(now-t0)/150));render(P,true);if(MB>0)mbA=requestAnimationFrame(st);else mbA=0};mbA=requestAnimationFrame(st)}
+function render(p,force){if(!host||!L)return;if(p===lastP&&!force)return;if(lastP!==null&&p!==lastP)moved();lastP=p;
  const {i,j,t}=weights(p),e=t*t*(3-2*t);
  KS.forEach(k=>{const b=B[k],q=pose(k,p);
   const dd=Math.min(1,q.dd),br=1-.66*dd,bl=1.25*Math.pow(dd,1.6);
@@ -94,7 +104,7 @@ function render(p,force){if(!host||!L)return;if(p===lastP&&!force)return;lastP=p
   b.el.style.zIndex=String(100+Math.round(q.zw*10));
   b.el.style.filter=dd>.002?`brightness(${br.toFixed(3)}) saturate(${(1-.3*dd).toFixed(3)})`:'none';
   b.el.dataset.blur=bl.toFixed(2);
-  const ps=Math.round(q.a*600)/600,rs=!anim&&!drag,key=ps+'|'+Math.round(bl*20)+'|'+rs+'|'+!!b.hi+!!b.s1+!!b.s2;if(b.lp!==key||force){b.lp=key;paint(k,ps,bl/q.sc,rs)}
+  const ps=Math.round(q.a*600)/600,rs=!anim&&!drag,key=ps+'|'+Math.round(bl*20)+'|'+rs+'|'+!!b.hi+!!b.s1+!!b.s2+!!(b.s3&&b.s4)+'|'+Math.round(MB*40);if(b.lp!==key||force){b.lp=key;paint(k,ps,bl/q.sc,rs)}
   b.el.classList.toggle('front',Math.cos(q.a)>.5)});
  const w=[0,0,0];w[i]=1-e;w[j]=e;E.bg.forEach((el,n)=>el.style.opacity=w[n].toFixed(3));
  uiUpd(p,i,j,t,e,CH[KS[i]],CH[KS[j]])}
@@ -160,7 +170,8 @@ window.HMHome={
  visible:()=>vis,
  state:()=>({p:P,v:V,kat:KS[mod(Math.round(P),3)],drag:!!drag,anim:!!anim}),
  render:p=>{render(p==null?P:p,true)},
- setP(p){cancelAnimationFrame(anim);anim=0;P=p;render(P,true)},
+ setP(p,mb){cancelAnimationFrame(anim);anim=0;MBfix=mb==null?null:mb;if(mb!=null)MB=mb;P=p;render(P,true)},
+ loaded:()=>KS.map(k=>[k,grid(B[k])]),
  pose:k=>L?pose(k,P):null,
  go,enter,KS};
 })();

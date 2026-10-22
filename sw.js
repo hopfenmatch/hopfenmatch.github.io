@@ -1,6 +1,6 @@
 /* HopfenMatch Service Worker – offline-fähig wie Galaxy Empire:
    HTML network-first (Updates kommen sofort an), alles andere cache-first. */
-const CACHE='hopfenmatch-v10';
+const CACHE='hopfenmatch-v11';
 const ASSETS=[
   "./",
   "./css/app.css",
@@ -29,12 +29,18 @@ const ASSETS=[
   "./img/car_bier.webp",
   "./img/car_bier_s1.webp",
   "./img/car_bier_s2.webp",
+  "./img/car_bier_s3.webp",
+  "./img/car_bier_s4.webp",
   "./img/car_wein.webp",
   "./img/car_wein_s1.webp",
   "./img/car_wein_s2.webp",
+  "./img/car_wein_s3.webp",
+  "./img/car_wein_s4.webp",
   "./img/car_whisky.webp",
   "./img/car_whisky_s1.webp",
   "./img/car_whisky_s2.webp",
+  "./img/car_whisky_s3.webp",
+  "./img/car_whisky_s4.webp",
   "./img/hop_logo_t.webp",
   "./img/hop_illu.webp",
   "./img/hop_logo.webp",

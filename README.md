@@ -71,3 +71,10 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Vorder- und Rückenetiketten (Fantasie, HopfenMatch) als Texturen.
 - Bilder: `img/car_<k>.webp` (Frontansicht), `img/car_<k>_s1.webp` (20°-Raster) und `_s2.webp` (Zwischenwinkel), gestaffelt nachgeladen.
 - SW-Cache `hopfenmatch-v10`, Assets `?v=10`.
+
+## v1.8.1: Flüssige Drehung auch bei langsamem Ziehen
+- 72 Winkel à 5° pro Flasche (vorher 36 à 10°), verteilt auf vier Sprite-Blätter: `img/car_<k>_s1.webp` und `_s2.webp` (10°-Raster, zuerst geladen), `_s3.webp` und `_s4.webp` (5°-Zwischenwinkel, im Hintergrund nachgeladen). Die Frontansicht `img/car_<k>.webp` ist weiterhin sofort da.
+- Bewegungsabhängige Überblendung: Während des Ziehens wird stufenlos zwischen den Nachbarwinkeln überblendet. Kommt die Bewegung zur Ruhe, rastet das Bild auf einen einzelnen, scharfen Winkel ein (keine Doppelbilder im Stand).
+- Tiefenunschärfe der hinteren Flaschen ändert sich stufenlos (keine Sprünge zwischen Unschärfestufen).
+- Karussell-Bilder gesamt ca. 5,3 MB.
+- SW-Cache `hopfenmatch-v11`, Assets `?v=11`, App-Version 1.8.1.
