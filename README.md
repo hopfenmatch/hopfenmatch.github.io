@@ -78,3 +78,13 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Tiefenunschärfe der hinteren Flaschen ändert sich stufenlos (keine Sprünge zwischen Unschärfestufen).
 - Karussell-Bilder gesamt ca. 5,3 MB.
 - SW-Cache `hopfenmatch-v11`, Assets `?v=11`, App-Version 1.8.1.
+
+## v1.9: Live-Etikett und mehr Licht
+- Etiketten werden nicht mehr ins Sprite gebacken, sondern per WebGL live auf die exakte Flaschengeometrie gezeichnet, genau im Drehwinkel des Sprites. Dadurch bleibt Schrift in jeder Position und auch beim langsamen Drehen scharf (kein Doppelbild durch Überblendung); nur das Glas blendet weiter über.
+- Beleuchtung im Shader: weiches Haupt-, Fenster- und Gegenlicht (Wrap-Diffus + sanfter Glanz), dunklere Ränder. Bier mit Kondenstropfen auf dem Etikett, Wein und Whisky mit glänzender Goldfolie. Rücketiketten durch Glas und Flüssigkeit getönt und leicht verzerrt sichtbar.
+- Retina-Etiketttexturen mit Mipmaps und Anisotropie: `img/lab_<k>_<f|b|n>.webp` (+ `_x` für Goldmaske/Tropfen).
+- Neue Sprites ohne Etikett mit wärmerem, hellerem Licht: `img/car2_<k>(_s1…_s4).webp`. Hintergrund in warmen Verläufen, Glas leuchtet von hinten, sehr dezenter Kontaktschatten, kein Boden; UI mit leichten Textschatten.
+- Hintere Flaschen günstiger (geringere GL-Auflösung, ohne Durchsicht-Schicht).
+- Ohne WebGL: altes Verhalten mit den eingebrannten Sprites `img/car_<k>…` (bleiben erhalten).
+- Bilder gesamt: Sprites ca. 5,2 MB + Etiketten ca. 1,2 MB.
+- SW-Cache `hopfenmatch-v12`, Assets `?v=12`, App-Version 1.9.

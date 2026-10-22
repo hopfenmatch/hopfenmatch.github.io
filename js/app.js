@@ -486,7 +486,7 @@ PAGES.profile=()=>{
   <div class="gi"><span class="ic" style="background:#3b82c4">${ic('spark')}</span><span class="lb">Match-Feier mit Konfetti</span><button class="switch ${S.settings.sounds?'on':''}" data-toggle="sounds" aria-label="Konfetti"></button></div>
   <button class="gi" data-act="install"><span class="ic" style="background:#555">${ic('phone')}</span><span class="lb">Zum Home-Bildschirm</span><span class="chev">${ic('chev')}</span></button>
   <button class="gi" data-act="invite"><span class="ic" style="background:#62803a">${ic('userplus')}</span><span class="lb">Freund einladen</span><span class="chev">${ic('chev')}</span></button>
-  <button class="gi" data-act="about"><span class="ic" style="background:#a08a70">${ic('info')}</span><span class="lb">Über HopfenMatch</span><span class="vl">1.8.1</span><span class="chev">${ic('chev')}</span></button></div>
+  <button class="gi" data-act="about"><span class="ic" style="background:#a08a70">${ic('info')}</span><span class="lb">Über HopfenMatch</span><span class="vl">1.9</span><span class="chev">${ic('chev')}</span></button></div>
  ${syncOn()?`<div class="lbl">Synchronisierung</div><div class="group"><button class="gi" data-act="syncNow"><span class="ic" style="background:${SYNC.online?'#62803a':'#a08a70'}">${ic('refresh')}</span><span class="lb">${SYNC.online?'Mit Server verbunden':'Offline'}</span><span class="vl">${syncLabel()}</span><span class="chev">${ic('chev')}</span></button></div>`:''}
  <div class="group"><button class="gi" data-act="logout"><span class="ic" style="background:#8a6a4a">${ic('logout')}</span><span class="lb">Abmelden</span><span class="vl">${esc(u.name)}</span><span class="chev">${ic('chev')}</span></button></div>
  <div class="group"><button class="gi red" data-act="reset"><span class="ic" style="background:#c0392b">${ic('refresh')}</span><span class="lb">${syncOn()?'Daten neu vom Server laden':'Daten zurücksetzen'}</span></button>
@@ -863,7 +863,7 @@ function handleAct(a,el){
   case 'logout':confirmDlg('Abmelden?',`Du bist als ${esc(U(ME).name)} angemeldet. Deine Daten bleiben auf dem Server gespeichert.`,'Abmelden',logout,false);break;
   case 'syncNow':sync(true).then(()=>{toast(SYNC.online?'Synchronisiert':'Offline – Änderungen werden später gesendet',SYNC.online?'check':'info');const p=curPage();p&&refreshPage(p)});break;
   case 'home':showHome();break;
-  case 'about':infoDlg('HopfenMatch 1.8.1',`Bier, Wein &amp; Whisky. Gute Leute.<br>Bewerte von 0–100, finde Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende – getrennt für Bier, Wein und Whisky.<br><br>Katalog: ${BEERS.length} Biere, ${WINES.length} Weine und ${WHISKIES.length} Whiskys. Bier: ${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern.`);break;
+  case 'about':infoDlg('HopfenMatch 1.9',`Bier, Wein &amp; Whisky. Gute Leute.<br>Bewerte von 0–100, finde Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende – getrennt für Bier, Wein und Whisky.<br><br>Katalog: ${BEERS.length} Biere, ${WINES.length} Weine und ${WHISKIES.length} Whiskys. Bier: ${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern.`);break;
   case 'ovClose':$('#overlay').classList.remove('on');break;
   case 'ovPlan':$('#overlay').classList.remove('on');tastingSheet(null,id);break;
  }
