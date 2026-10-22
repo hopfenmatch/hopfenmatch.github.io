@@ -58,3 +58,9 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Jede Kategorie hat eigene Bewertungen, Rangliste, Matches (über 90 bei beiden), Tastings und Aktivitäten. Die Kategorie wechselt man über den Kopf-Umschalter oder die Startseite.
 - **Datenmodell:** IDs mit den Präfixen `wn-` und `wk-` (eigene: `wn-c-`, `wk-c-`), Tastings mit dem Feld `kat`. Es gab keine Server- oder Schemaänderung; Bierdaten bleiben unverändert in der Kategorie Bier.
 - SW-Cache `hopfenmatch-v8`. Assets werden beim Install an der HTTP-Cache vorbei geladen.
+
+## v1.7.1: Fotorealistische Flaschen (noch nicht veröffentlicht – wartet auf Freigabe)
+- Startseite: drei Studio-Nahaufnahmen (Bier-Euroflasche mit Kondenstropfen, dunkelgrüne Bordeauxflasche, kantige Kristall-Whiskyflasche). Die HopfenMatch-Fantasieetiketten werden einmalig per Canvas eingebrannt (Druckfarbe mit Multiply, Goldfolie mit Prägung, Zylinderverzerrung). Dateien: `img/home_*.webp` (1440×2560).
+- Morphing in WebGL (`js/home.js`): Flaschenbreite und Etikettkanten gleiten ineinander, dazu eine weiche Wischkante mit Rauschen, eine leichte Glasverzerrung und ein Softbox-Lichtstreif an der Kante. Der Übergang folgt weiter dem Finger. Fallback ohne WebGL: Canvas-2D-Überblendung; bei reduzierter Bewegung wird überblendet.
+- Intro: dunkler Studiohintergrund, Foto einer Euroflasche mit Kronkorken (`img/intro_flasche.webp`, Alpha aus Schwarzhintergrund). Etikett und Halsetikett werden je Frame spaltenweise auf den Zylinder projiziert und drehen beim Rollen mit; die Glanzlichter bleiben stehen.
+- SW-Cache `hopfenmatch-v9`, Assets `?v=9`.

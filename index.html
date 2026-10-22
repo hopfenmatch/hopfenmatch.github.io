@@ -20,32 +20,24 @@
 <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon-152.png">
 <link rel="preload" href="fonts/lora.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sourcesans3.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/app.css?v=8">
+<link rel="preload" href="img/intro_flasche.webp" as="image">
+<link rel="stylesheet" href="css/app.css?v=9">
 <style>/* Intro (inline, damit es vor allem anderen und auch mit alten Caches funktioniert) */
-#intro{position:absolute;inset:0;z-index:95;overflow:hidden;background:radial-gradient(120% 80% at 50% 40%,#fff8e8 0%,#f6e8c8 55%,#ecd2a0 100%);transition:opacity .62s cubic-bezier(.4,0,.2,1),transform .62s cubic-bezier(.4,0,.2,1);animation:inSafe .6s 7s forwards}
+#intro{position:absolute;inset:0;z-index:95;overflow:hidden;background:radial-gradient(110% 70% at 50% 36%,#3b2615 0%,#1b1009 52%,#090504 100%);transition:opacity .62s cubic-bezier(.4,0,.2,1),transform .62s cubic-bezier(.4,0,.2,1);animation:inSafe .6s 7s forwards}
 #intro.done{opacity:0;transform:scale(1.06);pointer-events:none}
 @keyframes inSafe{to{opacity:0;visibility:hidden}}
 #intro .in-logo{position:absolute;left:0;right:0;top:30%;display:flex;flex-direction:column;align-items:center;opacity:0;animation:inLogo .9s cubic-bezier(.2,.8,.2,1) .1s forwards}
 #intro .hoprow{display:flex;align-items:center;gap:14px;height:56px}
-#intro .hoprow i{display:block;width:52px;height:2px;background:#d9a032;border-radius:1px;margin-top:6px;transform:scaleX(0);animation:inLine .7s cubic-bezier(.2,.8,.2,1) .45s forwards}
-#intro .hoprow img{height:56px;width:auto;mix-blend-mode:multiply}
-#intro .wm{font-family:'Lora',Georgia,serif;font-weight:700;font-size:46px;letter-spacing:-.6px;line-height:1;margin-top:4px;color:#431b07}
-#intro .wm b{background:linear-gradient(180deg,#e0a02a,#c97f12);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-#intro .tag{font-size:12.5px;letter-spacing:3.4px;color:#5a2a14;margin-top:9px;font-weight:600;opacity:0;animation:inFade .6s ease .6s forwards}
+#intro .hoprow i{display:block;width:52px;height:2px;background:linear-gradient(90deg,rgba(217,160,50,0),#d9a032);border-radius:1px;margin-top:6px;transform:scaleX(0);animation:inLine .7s cubic-bezier(.2,.8,.2,1) .45s forwards}
+#intro .hoprow i+img+i{background:linear-gradient(90deg,#d9a032,rgba(217,160,50,0))}#intro .hoprow img{height:56px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+#intro .wm{font-family:'Lora',Georgia,serif;font-weight:700;font-size:46px;letter-spacing:-.6px;line-height:1;margin-top:4px;color:#f6ead2;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+#intro .wm b{background:linear-gradient(180deg,#f6cf6e,#d49222);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#intro .tag{font-size:12.5px;letter-spacing:3.4px;color:#cfae76;margin-top:9px;font-weight:600;opacity:0;animation:inFade .6s ease .6s forwards}
 @keyframes inLogo{0%{opacity:0;transform:translateY(14px) scale(.9)}100%{opacity:1;transform:none}}
 @keyframes inLine{to{transform:none}}@keyframes inFade{to{opacity:1}}
-/* Flasche rollt (Draufsicht): sie wandert quer, das Etikett läuft um den Glaskörper, das Glanzlicht bleibt stehen */
-#intro .in-track{position:absolute;left:0;right:0;top:56%;height:240px}
-#intro .in-roll{position:absolute;left:0;top:0;width:64px;height:240px;transform:translate3d(-100px,0,0);animation:inRoll 1.6s cubic-bezier(.42,.08,.36,1) .8s forwards;will-change:transform}
-#intro .in-roll svg{position:absolute;left:0;top:0;width:64px;height:240px;overflow:visible}
-#intro .in-sh{position:absolute;left:-6px;top:20px;width:90px;height:232px;border-radius:50%;background:radial-gradient(closest-side,rgba(70,36,10,.26),rgba(70,36,10,0));transform:translate(10px,8px)}
-#intro .in-lab{position:absolute;left:3.2px;width:57.6px;top:141px;height:70px;overflow:hidden}
-#intro .in-strip{position:absolute;left:0;top:0;height:100%;display:flex;transform:translate3d(-543px,0,0);animation:inStrip 1.6s cubic-bezier(.42,.08,.36,1) .8s forwards;will-change:transform}
-#intro .in-strip span{flex:none;width:110px;height:100%;margin-right:71px;background:#f3ead2;border-top:3px solid #7a3f10;border-bottom:11px solid #b2392b;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 15px/1 'Lora',Georgia,serif;color:#3b1a0b}
-#intro .in-strip span small{font:700 6.5px/1 'Source Sans 3',-apple-system,Helvetica,Arial,sans-serif;letter-spacing:1.4px;color:#7a3f10;margin-top:5px}
-#intro .in-shade{position:absolute;left:3.2px;width:57.6px;top:141px;height:70px;background:linear-gradient(90deg,rgba(0,0,0,.5),rgba(0,0,0,.08) 18%,rgba(255,255,255,.28) 30%,rgba(255,255,255,0) 46%,rgba(0,0,0,.1) 75%,rgba(0,0,0,.55))}
-@keyframes inRoll{0%{transform:translate3d(-100px,0,0)}100%{transform:translate3d(calc(var(--iw,390px) + 40px),0,0)}}
-@keyframes inStrip{0%{transform:translate3d(-543px,0,0)}100%{transform:translate3d(0,0,0)}}
+/* Flasche rollt (Draufsicht, Studiofoto): sie wandert quer, Etikett und Halsetikett laufen um den Glaskörper, Glanzlichter bleiben stehen */
+#intro .in-track{position:absolute;left:0;right:0;top:47%;height:min(340px,50%)}
+#intro .in-cv{position:absolute;left:0;top:0;width:100%;height:100%}
 @media (prefers-reduced-motion:reduce){#intro .in-track{display:none}#intro .in-logo,#intro .tag,#intro .hoprow i{animation-duration:.01s}#intro{transition-duration:.3s}#intro.done{transform:none}}
 
 #home{display:none}
@@ -68,14 +60,8 @@
   <nav id="nav"></nav>
   <button id="plus" aria-label="Bier bewerten"></button>
   <div id="intro" aria-hidden="true">
-   <div class="in-logo"><div class="hoprow"><i></i><img src="img/hop_logo.webp" alt=""><i></i></div><div class="wm">Hopfen<b>Match</b></div><div class="tag">BIER · WEIN · WHISKY</div></div>
-   <div class="in-track"><div class="in-roll"><div class="in-sh"></div>
-    <svg viewBox="0 0 40 150" preserveAspectRatio="none"><defs><linearGradient id="ing" x1="0" x2="1"><stop offset="0" stop-color="#3a1a06"/><stop offset=".22" stop-color="#7a3f10"/><stop offset=".34" stop-color="#b0631c"/><stop offset=".46" stop-color="#7a3f10"/><stop offset=".85" stop-color="#3a1a06"/><stop offset="1" stop-color="#2a1204"/></linearGradient></defs>
-     <path d="M13.8,8 L26.2,8 L26.2,40 C26.2,52 38,58 38,70 L38,144 Q38,148 34,148 L6,148 Q2,148 2,144 L2,70 C2,58 13.8,52 13.8,40 Z" fill="url(#ing)"/>
-     <rect x="13" y="2" width="14" height="7" rx="1.5" fill="#c9a227"/><path d="M13.3,34 L26.7,34 L29.2,45 L20,50 L10.8,45 Z" fill="#7a3f10"/>
-     <path d="M6,72 L6,84 M6,132 L6,142" stroke="#fff" stroke-opacity=".3" stroke-width="2.2" stroke-linecap="round"/><path d="M15.8,11 L15.8,32" stroke="#fff" stroke-opacity=".32" stroke-width="1.4" stroke-linecap="round"/></svg>
-    <div class="in-lab"><div class="in-strip"><span>Hopfen<small>MATCH</small></span><span>Hopfen<small>MATCH</small></span><span>Hopfen<small>MATCH</small></span><span>Hopfen<small>MATCH</small></span></div></div><div class="in-shade"></div>
-   </div></div>
+   <div class="in-logo"><div class="hoprow"><i></i><img src="img/hop_logo_t.webp" alt=""><i></i></div><div class="wm">Hopfen<b>Match</b></div><div class="tag">BIER · WEIN · WHISKY</div></div>
+   <div class="in-track"><canvas class="in-cv"></canvas></div>
   </div>
   <div id="home" tabindex="-1" aria-label="Kategorie wählen"></div>
   <div id="sheets"></div>
@@ -86,14 +72,44 @@
 </div></div>
 <script>(function(){var i=document.getElementById('intro');if(!i)return;try{var w=document.getElementById('screen').clientWidth;i.style.setProperty('--iw',w+'px')}catch(e){}
 if(/[?&]nointro/.test(location.search)){i.remove();return}
-setTimeout(function(){if(i.isConnected&&!window.HM_INTRO){i.classList.add('done');setTimeout(function(){i.remove()},700)}},4500)})();</script>
-<script src="js/data.js?v=8"></script>
-<script src="js/catalog.js?v=8"></script>
-<script src="js/bottle.js?v=8"></script>
-<script src="js/wine.js?v=8"></script>
-<script src="js/whisky.js?v=8"></script>
-<script src="js/home.js?v=8"></script>
-<script src="js/bounce.js?v=8"></script>
-<script src="js/app.js?v=8"></script>
+/* Rollende Flasche: Foto (Alpha) + Etiketten, je Frame spaltenweise auf den Zylinder projiziert */
+(function(){var tr=i.querySelector('.in-track'),c=i.querySelector('.in-cv');if(!c||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+var L=function(s){var m=new Image();m.src=s;return m},fl=L('img/intro_flasche.webp'),et=L('img/intro_etikett.webp'),hs=L('img/intro_hals.webp');
+var x=c.getContext('2d'),t0=performance.now(),D=Math.min(window.devicePixelRatio||1,3),W,Hc,sc,run=true;
+/* Maße in Foto-Einheiten (Ausschnitt 320×1127) */
+var CW0=320,CH0=1127,CX0=159.5,RB=140,LY0=657,LY1=983,RN=54.5,NY0=55,NY1=103;
+function size(){var r=tr.getBoundingClientRect();W=r.width;Hc=r.height;c.width=Math.round(W*D);c.height=Math.round(Hc*D);sc=Math.min(318,Hc-14)/CH0*D}
+size();
+var LC=document.createElement('canvas'),LM=document.createElement('canvas');
+function band(img,xc,R,y0,y1,dx,arc,full){var iw=img.naturalWidth,ih=img.naturalHeight,C=2*Math.PI*R,Lw=full?C:arc,w=Math.ceil(2*R)+2,h=Math.ceil(y1-y0),ox=Math.floor(xc-R)-1;
+ if(LC.width<w||LC.height<h){LC.width=LM.width=Math.max(w,LC.width);LC.height=LM.height=Math.max(h,LC.height)}
+ var l=LC.getContext('2d'),m=LM.getContext('2d');l.globalCompositeOperation='source-over';l.clearRect(0,0,LC.width,LC.height);m.clearRect(0,0,LM.width,LM.height);
+ for(var px=ox;px<ox+w;px++){var u=(px+.5-xc)/R;if(u<=-.995||u>=.995)continue;var s=R*Math.asin(u)-dx+Lw*.5,sm=((s%C)+C)%C;if(sm>=Lw)continue;
+  var sx=sm/Lw*iw,sw=Math.max(.6,iw/Lw/Math.sqrt(1-u*u));l.drawImage(img,Math.min(iw-sw,sx),0,sw,ih,px-ox,0,1,h)}
+ m.drawImage(LC,0,0);
+ var g=l.createLinearGradient(xc-R-ox,0,xc+R-ox,0);g.addColorStop(0,'#2c241c');g.addColorStop(.1,'#a39684');g.addColorStop(.27,'#ffffff');g.addColorStop(.55,'#efe6da');g.addColorStop(.86,'#7d7163');g.addColorStop(1,'#1e1812');
+ l.globalCompositeOperation='multiply';l.fillStyle=g;l.fillRect(0,0,w,h);
+ var hl=l.createLinearGradient(xc-R-ox,0,xc+R-ox,0);hl.addColorStop(.17,'rgba(255,255,255,0)');hl.addColorStop(.23,'rgba(255,250,238,.42)');hl.addColorStop(.3,'rgba(255,255,255,0)');hl.addColorStop(.86,'rgba(255,255,255,0)');hl.addColorStop(.9,'rgba(255,240,220,.16)');hl.addColorStop(.94,'rgba(255,255,255,0)');
+ l.globalCompositeOperation='screen';l.fillStyle=hl;l.fillRect(0,0,w,h);
+ l.globalCompositeOperation='destination-in';l.drawImage(LM,0,0);l.globalCompositeOperation='source-over';
+ x.drawImage(LC,0,0,w,h,ox,y0,w,h)}
+function frame(now){if(!run||!i.isConnected)return;var t=window.HM_INTRO_T!=null?window.HM_INTRO_T:(now-t0)/1000,p=(t-.75)/1.65;x.clearRect(0,0,c.width,c.height);
+ if(p>0&&p<1&&fl.complete&&fl.naturalWidth){var e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;e=e*.55+p*.45;
+  var bw=CW0*sc,xc=-bw*.6+(c.width+bw*1.2)*e,top=(c.height-CH0*sc)/2,dx=xc;
+  x.save();x.globalAlpha=.55;var sg=x.createRadialGradient(xc,top+CH0*sc*.98,2,xc,top+CH0*sc*.98,bw*.8);sg.addColorStop(0,'rgba(0,0,0,.7)');sg.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=sg;x.fillRect(xc-bw,top+CH0*sc*.9,2*bw,CH0*sc*.2);x.restore();
+  x.drawImage(fl,xc-CX0*sc,top,CW0*sc,CH0*sc);
+  if(et.complete&&et.naturalWidth)band(et,xc,RB*sc,top+LY0*sc,top+LY1*sc,dx,(LY1-LY0)*sc*et.naturalWidth/et.naturalHeight,false);
+  if(hs.complete&&hs.naturalWidth)band(hs,xc,RN*sc,top+NY0*sc,top+NY1*sc,dx*RN/RB,0,true)}
+ if(t<3.2||window.HM_INTRO_T!=null)requestAnimationFrame(frame)}
+requestAnimationFrame(frame)})();
+setTimeout(function(){if(i.isConnected&&!window.HM_INTRO&&!window.HM_INTRO_HOLD){i.classList.add('done');setTimeout(function(){i.remove()},700)}},4500)})();</script>
+<script src="js/data.js?v=9"></script>
+<script src="js/catalog.js?v=9"></script>
+<script src="js/bottle.js?v=9"></script>
+<script src="js/wine.js?v=9"></script>
+<script src="js/whisky.js?v=9"></script>
+<script src="js/home.js?v=9"></script>
+<script src="js/bounce.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
 </body>
 </html>
