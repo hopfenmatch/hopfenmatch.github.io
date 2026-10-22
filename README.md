@@ -59,8 +59,15 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - **Datenmodell:** IDs mit den Präfixen `wn-` und `wk-` (eigene: `wn-c-`, `wk-c-`), Tastings mit dem Feld `kat`. Es gab keine Server- oder Schemaänderung; Bierdaten bleiben unverändert in der Kategorie Bier.
 - SW-Cache `hopfenmatch-v8`. Assets werden beim Install an der HTTP-Cache vorbei geladen.
 
-## v1.7.1: Fotorealistische Flaschen (noch nicht veröffentlicht – wartet auf Freigabe)
-- Startseite: drei Studio-Nahaufnahmen (Bier-Euroflasche mit Kondenstropfen, dunkelgrüne Bordeauxflasche, kantige Kristall-Whiskyflasche). Die HopfenMatch-Fantasieetiketten werden einmalig per Canvas eingebrannt (Druckfarbe mit Multiply, Goldfolie mit Prägung, Zylinderverzerrung). Dateien: `img/home_*.webp` (1440×2560).
+## v1.7.1: Fotorealistische Flaschen
+- Startseite: drei Studio-Nahaufnahmen (Bier-Euroflasche mit Kondenstropfen, dunkelgrüne Bordeauxflasche, kantige Kristall-Whiskyflasche). Die HopfenMatch-Fantasieetiketten werden einmalig per Canvas eingebrannt (Druckfarbe mit Multiply, Goldfolie mit Prägung, Zylinderverzerrung). (Bilder in v1.8 ersetzt.)
 - Morphing in WebGL (`js/home.js`): Flaschenbreite und Etikettkanten gleiten ineinander, dazu eine weiche Wischkante mit Rauschen, eine leichte Glasverzerrung und ein Softbox-Lichtstreif an der Kante. Der Übergang folgt weiter dem Finger. Fallback ohne WebGL: Canvas-2D-Überblendung; bei reduzierter Bewegung wird überblendet.
-- Intro: dunkler Studiohintergrund, Foto einer Euroflasche mit Kronkorken (`img/intro_flasche.webp`, Alpha aus Schwarzhintergrund). Etikett und Halsetikett werden je Frame spaltenweise auf den Zylinder projiziert und drehen beim Rollen mit; die Glanzlichter bleiben stehen.
+- Intro: rollende Foto-Euroflasche (in v1.8 durch das reine Logo-Intro ersetzt).
 - SW-Cache `hopfenmatch-v9`, Assets `?v=9`.
+
+## v1.8: 3D-Karussell aus gerenderten Flaschen
+- Ladebildschirm nur mit dem HopfenMatch-Logo, elegant ein- und ausgeblendet im dunklen Studio-Look.
+- Startseite (`js/home.js`): drei fotorealistische Flaschen (Blender Cycles: Bier-Euroflasche 0,5 l mit Kondenstropfen, Bordeaux in Dunkelgrün mit Folienkapsel, kantige Kristall-Whiskyflasche mit Holzkorken) auf einer unsichtbaren Drehplatte. Wischen dreht den Kreis (folgt dem Finger, Trägheit, Feder, endlos); jede Flasche dreht sich dabei sichtbar um die eigene Achse (36 Winkel à 10°). Hintere Flaschen kleiner, dunkler, leicht unscharf. Studiolicht bleibt stehen. Tipp auf die vordere Flasche öffnet den Bereich, Tipp auf eine hintere dreht sie nach vorn. Bei reduzierter Bewegung wird überblendet.
+- Vorder- und Rückenetiketten (Fantasie, HopfenMatch) als Texturen.
+- Bilder: `img/car_<k>.webp` (Frontansicht), `img/car_<k>_s1.webp` (20°-Raster) und `_s2.webp` (Zwischenwinkel), gestaffelt nachgeladen.
+- SW-Cache `hopfenmatch-v10`, Assets `?v=10`.

@@ -697,6 +697,15 @@ html.bounce-native .lg-in{overscroll-behavior-y:contain}
 #home{position:absolute;inset:0;z-index:84;display:none;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:#2a140a;--ui:#3b1a0b;--sub:#6b4a2a;--btn:#d8921a;--btnink:#fff}
 #home.on{display:block}
 #home .hm-svg{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+#home .hm-bg,#home .hm-bg i{position:absolute;inset:0;display:block}
+#home .hm-bg{background:#0b0705}
+/* Studiolicht: fest stehende Softbox oben links + warmer Lichtschein hinter den Flaschen, nahtlose Hohlkehle ohne Kante */
+#home .hm-bg i{opacity:0;will-change:opacity}
+#home .hm-bg-bier{background:radial-gradient(60% 34% at 50% 50%,rgba(122,74,30,.55),rgba(122,74,30,0) 100%),radial-gradient(90% 60% at 30% 22%,#3a2414 0%,#1d110a 55%,#0b0705 100%)}
+#home .hm-bg-wein{background:radial-gradient(60% 34% at 50% 50%,rgba(118,36,48,.5),rgba(118,36,48,0) 100%),radial-gradient(90% 60% at 30% 22%,#3a1a1e 0%,#1c0b0e 55%,#0a0405 100%)}
+#home .hm-bg-whisky{background:radial-gradient(60% 34% at 50% 50%,rgba(130,92,40,.5),rgba(130,92,40,0) 100%),radial-gradient(90% 60% at 30% 22%,#382816 0%,#1b130a 55%,#0a0705 100%)}
+#home .hm-stage{overflow:hidden}
+#home .hm-b{position:absolute;left:0;top:0;transform-origin:50% 0;will-change:transform,filter;pointer-events:none}
 #home.on:not(.leaving) .hm-svg{animation:hmIn .7s cubic-bezier(.2,.8,.2,1)}
 @keyframes hmIn{from{transform:scale(1.08);opacity:0}to{transform:none;opacity:1}}
 #home.leaving{animation:hmOut .56s cubic-bezier(.5,0,.2,1) forwards;pointer-events:none}
@@ -708,14 +717,14 @@ html.bounce-native .lg-in{overscroll-behavior-y:contain}
 #home .hm-wm b{color:var(--btn)}
 #home .hm-me{position:absolute;right:16px;top:3px;width:40px;height:40px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:auto;background:#eee}
 #home .hm-me img{width:100%;height:100%;object-fit:cover;display:block}
-#home .hm-hint{position:absolute;left:0;right:0;bottom:calc(var(--sab) + 182px);text-align:center;font-size:13px;font-weight:600;letter-spacing:.6px;color:var(--ui);opacity:.75;pointer-events:none;transition:opacity .5s;animation:hmHint 2.4s ease-in-out 1.2s infinite}
+#home .hm-hint{position:absolute;left:0;right:0;bottom:calc(var(--sab) + 2px);text-align:center;font-size:13px;font-weight:600;letter-spacing:.6px;color:var(--ui);opacity:.75;pointer-events:none;transition:opacity .5s;animation:hmHint 2.4s ease-in-out 1.2s infinite}
 #home .hm-hint span{display:inline-block;margin:0 6px;font-size:16px}
 #home.swiped .hm-hint{opacity:0;animation:none}
 @keyframes hmHint{0%,100%{transform:translateX(0)}40%{transform:translateX(-10px)}70%{transform:translateX(8px)}}
 #home .hm-bot{position:absolute;left:0;right:0;bottom:0;padding:0 24px calc(var(--sab) + 26px);display:flex;flex-direction:column;align-items:center;pointer-events:none}
-#home .hm-titles{position:relative;width:100%;height:26px}
+#home .hm-titles{position:relative;width:100%;height:68px}
 #home .hm-t{position:absolute;inset:0;text-align:center;will-change:transform,opacity}
-#home .hm-t h1{font-family:var(--serif);font-weight:700;font-size:46px;line-height:1.05;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45);margin:0}
+#home .hm-t h1{font-family:var(--serif);font-weight:700;font-size:40px;letter-spacing:-.3px;line-height:1.05;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45);margin:0}
 #home .hm-t p{margin:0;font-size:15px;font-weight:600;letter-spacing:.2px;color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.55)}
 #home .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #home .hm-go{pointer-events:auto;margin-top:12px;height:54px;min-width:230px;padding:0 26px;border-radius:27px;background:var(--btn);color:var(--btnink);font-size:17.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .15s}

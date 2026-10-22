@@ -1,6 +1,6 @@
 /* HopfenMatch Service Worker – offline-fähig wie Galaxy Empire:
    HTML network-first (Updates kommen sofort an), alles andere cache-first. */
-const CACHE='hopfenmatch-v9';
+const CACHE='hopfenmatch-v10';
 const ASSETS=[
   "./",
   "./css/app.css",
@@ -26,13 +26,16 @@ const ASSETS=[
   "./img/bot_tegernseer-hell.webp",
   "./img/cheers.webp",
   "./img/hero_tegernseer.webp",
-  "./img/home_bier.webp",
-  "./img/home_wein.webp",
-  "./img/home_whisky.webp",
+  "./img/car_bier.webp",
+  "./img/car_bier_s1.webp",
+  "./img/car_bier_s2.webp",
+  "./img/car_wein.webp",
+  "./img/car_wein_s1.webp",
+  "./img/car_wein_s2.webp",
+  "./img/car_whisky.webp",
+  "./img/car_whisky_s1.webp",
+  "./img/car_whisky_s2.webp",
   "./img/hop_logo_t.webp",
-  "./img/intro_etikett.webp",
-  "./img/intro_flasche.webp",
-  "./img/intro_hals.webp",
   "./img/hop_illu.webp",
   "./img/hop_logo.webp",
   "./img/martin.jpg",
