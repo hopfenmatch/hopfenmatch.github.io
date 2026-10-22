@@ -1,14 +1,14 @@
 /* HopfenMatch Service Worker – offline-fähig.
-   1.9.1: kein Neustart mitten in der Nutzung.
+   1.10: Biergrafiken mit Markenfarben (brands.js). 1.9.1: kein Neustart mitten in der Nutzung.
    - Installation lädt nur das Nötigste (HTML, CSS, JS, Schriften, Icons) → neue Version ist nach ~1 s bereit,
      Bilder werden danach im Hintergrund nachgeladen bzw. aus dem vorigen Cache übernommen.
    - CSS/JS sind versioniert (?v=N) und werden exakt gesucht: neue Seite bekommt nie altes JS (keine Versionsmischung).
    - Der vorige Cache bleibt erhalten, damit eine noch offene ältere Seite weiter alles findet.
    HTML network-first, alles andere cache-first. */
-const V=13,CACHE='hopfenmatch-v'+V;
+const V=14,CACHE='hopfenmatch-v'+V;
 const CORE=[
   "./",
-  "./css/app.css?v=13",
+  "./css/app.css?v=14",
   "./fonts/lora.woff2",
   "./fonts/sourcesans3-italic.woff2",
   "./fonts/sourcesans3.woff2",
@@ -22,15 +22,16 @@ const CORE=[
   "./icons/maskable-192.png",
   "./icons/maskable-512.png",
   "./index.html",
-  "./js/app.js?v=13",
-  "./js/bottle.js?v=13",
-  "./js/bounce.js?v=13",
-  "./js/catalog.js?v=13",
-  "./js/data.js?v=13",
-  "./js/whisky.js?v=13",
-  "./js/wine.js?v=13",
+  "./js/app.js?v=14",
+  "./js/bottle.js?v=14",
+  "./js/bounce.js?v=14",
+  "./js/catalog.js?v=14",
+  "./js/brands.js?v=14",
+  "./js/data.js?v=14",
+  "./js/whisky.js?v=14",
+  "./js/wine.js?v=14",
   "./manifest.webmanifest",
-  "./js/home.js?v=13",
+  "./js/home.js?v=14",
 ];
 const REST=[
   "./img/bot_augustiner-hell.webp",

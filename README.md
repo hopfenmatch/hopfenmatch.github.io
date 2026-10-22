@@ -95,3 +95,10 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Die Zwischenwinkel-Blätter (`car3_*_s2…s4`, nur in Bewegung sichtbar) haben jetzt die 0,7-fache Auflösung. Das Ruhebild ist unverändert. Der Texturspeicher sinkt von etwa 250 MB auf etwa 150 MB, was iOS-Speicherabbrüche verhindert.
 - Updates: Der Service Worker installiert nur noch das Nötigste und übernimmt die Bilder aus dem vorigen Cache. CSS und JS sind versioniert und werden exakt gesucht, sodass Versionen nicht mehr gemischt werden. Die Seite lädt bei einem Update **nicht mehr mitten in der Nutzung neu**, höchstens einmal still in den ersten Sekunden vor der ersten Eingabe (mit Schutz gegen Schleifen). Sonst gilt das Update beim nächsten Start.
 - Ohne WebGL oder nach einem Kontextverlust zeichnet die App wie bisher mit Canvas 2D.
+
+## v1.10: Erkennbarere Biergrafiken
+- Die generativen Katalog-Flaschen tragen jetzt den **echten Bier- und Brauereinamen** in unseren App-Schriften (Lora, Source Sans) auf **8 eigenen, neutralen Etikett-Layouts**. Welches Layout eine Brauerei bekommt, ergibt sich fest aus ihrem Namen.
+- Recherchiert sind **Markenfarben** (Etikettgrund, Haupt- und Akzentfarbe), das **typische Gebinde** (Euro, NRW/Longneck, Steinie, Bügel, Vichy/Ale, Dose) und die **Glasfarbe**. Die Daten stehen in `js/brands.js`, die Quellen (Produktfotos von Open Food Facts, Brauerei-, Shop- und Presseseiten) in `work/v110/brands.json` außerhalb des Repos.
+- Ohne belegte Daten gibt es **Stilfarben als Fallback**, markiert mit `svg.fb`: Helles Gold/Weiß, Pils Grün/Weiß, Weizen Weiß/Blau, Dunkel/Bock Braun/Rot, Rauchbier Schwarz/Rot, IPA kräftig. Stand: 440 Biere mit recherchierten Farben, 954 mit Fallback, 8 mit echtem Foto.
+- Bewusst **nicht** übernommen: Logos, Wappen, Maskottchen, Original-Schriftzüge, Originallayouts und Etikettformen, Slogans.
+- Neue Formen: Euro-, Vichy- und Ale-Flasche sowie die 0,5-l-Dose. Wein und Whisky sehen aus wie bisher. Ein SVG ist etwa 2,3 KB groß, Lazy-Loading ist unverändert. Service-Worker-Cache v14.
