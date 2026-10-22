@@ -87,6 +87,8 @@ function glassShape(beer,s,dx){
   return o;
 }
 function beerSVG(beer,kind){
+  if(beer.kat==='wein'&&window.wineSVG)return wineSVG(beer,kind);
+  if(beer.kat==='whisky'&&window.whiskySVG)return whiskySVG(beer,kind);
   const s=beer.svg;
   const body=s.shape==='can'?canShape(s):bottleShape(s);
   if(kind==='pair') return `<svg viewBox="-4 -4 96 158" xmlns="http://www.w3.org/2000/svg" class="bsvg">${body}${glassShape(beer,s,44)}</svg>`;

@@ -49,3 +49,12 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Server: Tabellen `hm_user` (PBKDF2-SHA256, 100 000 Iterationen, Salt je Konto), `hm_friend`, `hm_fail` (Rate-Limit),
   Routen `/register`, `/login`, `/logout`, `/account`, `/friend`, `/sync`, `/avatar/:id` – siehe `server/`.
   Die Daten-Epoche bleibt unverändert (keine Datenverluste). Backup: `node server/backup.js`.
+
+## v1.7: Bier · Wein · Whisky
+- **Ladebildschirm:** HopfenMatch-Logo, dann rollt eine Flasche quer über den Bildschirm (Etikett dreht mit), weicher Übergang in die App. `?nointro` überspringt ihn.
+- **Startseite nach der Anmeldung** (`js/home.js`, Canvas 2D): bildschirmfüllende Nahansicht des Flaschenbauchs. Wischen wechselt Bier → Wein → Whisky (Endlosschleife). Das Morphing von Kontur, Glasfarbe, Lichtreflexen und Etikett folgt dem Finger; beim Loslassen rastet es mit Feder ein. Tipp auf die Flasche oder auf „… entdecken“ öffnet den Bereich. Bei `prefers-reduced-motion` wird überblendet statt gemorpht. Etiketten werden einmal als Bitmap vorgerendert, ein Frame kostet unter 0,1 ms.
+- **Wein** (`js/wine.js`, 338 Weine von 211 Erzeugern): Weinart, Rebsorte, Land, Region; deutsche Anbaugebiete (Pfalz, Mosel, Rheinhessen, Franken …) stehen vorn. Generierte Flaschen (Bordeaux, Burgunder, Schlegel, Bocksbeutel, Sekt) mit Glas.
+- **Whisky** (`js/whisky.js`, 223 Whiskys von 121 Brennereien): Typ (Single Malt, Bourbon, Blended, Rye, Irish …), Land, Region (Islay, Speyside, Highlands, Kentucky …).
+- Jede Kategorie hat eigene Bewertungen, Rangliste, Matches (über 90 bei beiden), Tastings und Aktivitäten. Die Kategorie wechselt man über den Kopf-Umschalter oder die Startseite.
+- **Datenmodell:** IDs mit den Präfixen `wn-` und `wk-` (eigene: `wn-c-`, `wk-c-`), Tastings mit dem Feld `kat`. Es gab keine Server- oder Schemaänderung; Bierdaten bleiben unverändert in der Kategorie Bier.
+- SW-Cache `hopfenmatch-v8`. Assets werden beim Install an der HTTP-Cache vorbei geladen.

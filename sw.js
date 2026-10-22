@@ -1,6 +1,6 @@
 /* HopfenMatch Service Worker – offline-fähig wie Galaxy Empire:
    HTML network-first (Updates kommen sofort an), alles andere cache-first. */
-const CACHE='hopfenmatch-v7';
+const CACHE='hopfenmatch-v8';
 const ASSETS=[
   "./",
   "./css/app.css",
@@ -43,9 +43,12 @@ const ASSETS=[
   "./js/bounce.js",
   "./js/catalog.js",
   "./js/data.js",
+  "./js/home.js",
+  "./js/whisky.js",
+  "./js/wine.js",
   "./manifest.webmanifest",
 ];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
   const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;

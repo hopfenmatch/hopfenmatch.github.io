@@ -693,3 +693,56 @@ html.bounce-native .lg-in{overscroll-behavior-y:contain}
 .accform{display:flex;flex-direction:column;padding-top:6px}
 .accform .btn{flex:none;margin-top:4px}
 .btn.red-solid{background:linear-gradient(180deg,#d4513f,#b23a22);color:#fff;box-shadow:0 3px 10px rgba(178,58,34,.28)}
+/* ===== v1.7: Intro, Kategorie-Startseite (Morphing), Kategorie-Umschalter ===== */
+#home{position:absolute;inset:0;z-index:84;display:none;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:#2a140a;--ui:#3b1a0b;--sub:#6b4a2a;--btn:#d8921a;--btnink:#fff}
+#home.on{display:block}
+#home .hm-svg{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+#home.on:not(.leaving) .hm-svg{animation:hmIn .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes hmIn{from{transform:scale(1.08);opacity:0}to{transform:none;opacity:1}}
+#home.leaving{animation:hmOut .56s cubic-bezier(.5,0,.2,1) forwards;pointer-events:none}
+#home.leaving .hm-svg{transform-origin:50% 52%;animation:hmZoom .56s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes hmOut{60%{opacity:1}100%{opacity:0}}
+@keyframes hmZoom{to{transform:scale(1.9)}}
+#home .hm-top{position:absolute;left:0;right:0;top:calc(var(--sat) + 10px);height:48px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#home .hm-wm{font-family:var(--serif);font-weight:700;font-size:25px;letter-spacing:-.3px;color:var(--ui);text-shadow:0 1px 10px rgba(0,0,0,.12)}
+#home .hm-wm b{color:var(--btn)}
+#home .hm-me{position:absolute;right:16px;top:3px;width:40px;height:40px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:auto;background:#eee}
+#home .hm-me img{width:100%;height:100%;object-fit:cover;display:block}
+#home .hm-hint{position:absolute;left:0;right:0;bottom:calc(var(--sab) + 182px);text-align:center;font-size:13px;font-weight:600;letter-spacing:.6px;color:var(--ui);opacity:.75;pointer-events:none;transition:opacity .5s;animation:hmHint 2.4s ease-in-out 1.2s infinite}
+#home .hm-hint span{display:inline-block;margin:0 6px;font-size:16px}
+#home.swiped .hm-hint{opacity:0;animation:none}
+@keyframes hmHint{0%,100%{transform:translateX(0)}40%{transform:translateX(-10px)}70%{transform:translateX(8px)}}
+#home .hm-bot{position:absolute;left:0;right:0;bottom:0;padding:0 24px calc(var(--sab) + 26px);display:flex;flex-direction:column;align-items:center;pointer-events:none}
+#home .hm-titles{position:relative;width:100%;height:26px}
+#home .hm-t{position:absolute;inset:0;text-align:center;will-change:transform,opacity}
+#home .hm-t h1{font-family:var(--serif);font-weight:700;font-size:46px;line-height:1.05;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45);margin:0}
+#home .hm-t p{margin:0;font-size:15px;font-weight:600;letter-spacing:.2px;color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.55)}
+#home .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#home .hm-go{pointer-events:auto;margin-top:12px;height:54px;min-width:230px;padding:0 26px;border-radius:27px;background:var(--btn);color:var(--btnink);font-size:17.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .15s}
+#home .hm-go:active{transform:scale(.96)}
+#home .hm-dots{pointer-events:auto;position:relative;display:flex;gap:10px;margin-top:18px;height:12px;align-items:center}
+#home .hm-dots button{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.42);padding:0}
+#home .hm-dots i{position:absolute;left:-2px;top:-2px;width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-sizing:border-box;pointer-events:none;will-change:transform}
+#home.rmfade .hm-t{transition:opacity .18s}
+@media (prefers-reduced-motion:reduce){#home.on:not(.leaving) .hm-svg,#home.leaving .hm-svg{animation:none}#home.leaving{animation:hmOut .2s linear forwards}#home .hm-hint{animation:none}}
+/* Kategorie-Umschalter im Kopf */
+.hdr .logo .katsw{pointer-events:auto;display:flex;align-items:center;gap:5px;margin-top:4px;padding:2px 9px 2px 8px;border-radius:11px;border:1px solid #e3cfa6;background:#fffaf0;font-size:10.5px;letter-spacing:1.4px;color:#5a2a14;font-weight:600;white-space:nowrap;line-height:14px}
+.hdr .logo .katsw svg{width:11px;height:11px;opacity:.7}
+.hdr .logo .katsw .ke{font-size:11px;letter-spacing:0}
+html.k-wein .hdr .wm b{background:linear-gradient(180deg,#a8364c,#6b1d2e);-webkit-background-clip:text;background-clip:text}
+html.k-whisky .hdr .wm b{background:linear-gradient(180deg,#c88a3a,#8a5212);-webkit-background-clip:text;background-clip:text}
+html.k-wein .hdr .logo .katsw{border-color:#e6c3c8;background:#fff7f6;color:#6b1d2e}
+html.k-whisky .hdr .logo .katsw{border-color:#dcc49a;background:#fffaf0;color:#5a3412}
+
+/* v1.7: generierte Tasting-Bilder für Wein & Whisky */
+.tcard .timg.gen{background:radial-gradient(120% 90% at 70% 100%,#a8383f 0%,#5c1424 48%,#2a0a12 100%)}
+.tcard .timg.gen.g-whisky{background:radial-gradient(120% 90% at 70% 100%,#d08a2c 0%,#6a3812 50%,#2a160a 100%)}
+.tcard .timg.gen .glow{position:absolute;right:18%;top:14%;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,150,.55),rgba(255,214,150,0) 70%)}
+.tcard .timg.gen .tb{position:absolute;right:10%;bottom:-6px;display:flex;align-items:flex-end;gap:2px;height:132px}
+.tcard .timg.gen .tb svg{height:128px;width:auto;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45))}
+.tcard .timg.gen .tb.n3 svg:nth-child(2){height:138px}
+.tcard .timg.gen::before{z-index:1}
+/* v1.7: lange Namen im Seitenkopf sauber kürzen (Flex-Container kürzt in WebKit nicht) */
+.pnav .tt{display:block;line-height:46px;text-align:center}
+.pnav .back{max-width:31%}
+.pnav .tt{padding:0 calc(31% + 4px)}
