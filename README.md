@@ -88,3 +88,10 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Ohne WebGL: altes Verhalten mit den eingebrannten Sprites `img/car_<k>…` (bleiben erhalten).
 - Bilder gesamt: Sprites ca. 5,2 MB + Etiketten ca. 1,2 MB.
 - SW-Cache `hopfenmatch-v12`, Assets `?v=12`, App-Version 1.9.
+
+## v1.9.1: Ruckelfrei und kein Neustart mehr
+- Karussell in **einem einzigen WebGL-Canvas**: Flasche, Live-Etikett, Kontaktschatten, Tiefenunschärfe, Helligkeit und Sättigung entstehen im Shader. Es gibt keine 2D-Kopien und keine CSS-Filter pro Frame mehr. Gezeichnet wird höchstens einmal pro Animations-Frame.
+- Bilder werden vorab asynchron dekodiert (`decode()`) und einzeln in Leerlauf-Frames hochgeladen. Während einer Geste geht nur noch Dringendes hoch, und Texturen und Shader werden vorgewärmt. Die erste Drehung ruckelt dadurch nicht mehr.
+- Die Zwischenwinkel-Blätter (`car3_*_s2…s4`, nur in Bewegung sichtbar) haben jetzt die 0,7-fache Auflösung. Das Ruhebild ist unverändert. Der Texturspeicher sinkt von etwa 250 MB auf etwa 150 MB, was iOS-Speicherabbrüche verhindert.
+- Updates: Der Service Worker installiert nur noch das Nötigste und übernimmt die Bilder aus dem vorigen Cache. CSS und JS sind versioniert und werden exakt gesucht, sodass Versionen nicht mehr gemischt werden. Die Seite lädt bei einem Update **nicht mehr mitten in der Nutzung neu**, höchstens einmal still in den ersten Sekunden vor der ersten Eingabe (mit Schutz gegen Schleifen). Sonst gilt das Update beim nächsten Start.
+- Ohne WebGL oder nach einem Kontextverlust zeichnet die App wie bisher mit Canvas 2D.

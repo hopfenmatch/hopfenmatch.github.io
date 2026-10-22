@@ -706,6 +706,8 @@ html.bounce-native .lg-in{overscroll-behavior-y:contain}
 #home .hm-bg-whisky{background:radial-gradient(58% 36% at 50% 50%,rgba(255,214,150,.52),rgba(255,214,150,0) 100%),radial-gradient(70% 45% at 18% 10%,rgba(255,238,206,.34),rgba(255,238,206,0) 100%),linear-gradient(180deg,#b48c5c 0%,#9a7246 45%,#765434 78%,#5a3e24 100%)}
 #home .hm-stage{overflow:hidden}
 #home .hm-b{position:absolute;left:0;top:0;transform-origin:50% 0;will-change:transform,filter;pointer-events:none}
+#home .hm-gl{position:absolute;left:0;top:0;width:100%;display:block;pointer-events:none}
+#home.hm-glmode .hm-b{display:none}
 #home.on:not(.leaving) .hm-svg{animation:hmIn .7s cubic-bezier(.2,.8,.2,1)}
 @keyframes hmIn{from{transform:scale(1.08);opacity:0}to{transform:none;opacity:1}}
 #home.leaving{animation:hmOut .56s cubic-bezier(.5,0,.2,1) forwards;pointer-events:none}
