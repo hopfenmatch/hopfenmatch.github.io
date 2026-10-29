@@ -213,7 +213,7 @@ function renderTab(t){
  el.scrollTop=st;
  if(fid){const n=el.querySelector('#'+fid);if(n){n.focus({preventScroll:true});try{if(ss!=null)n.setSelectionRange(ss,ss)}catch(e){}}}
 }
-function renderAll(){TABS.forEach(renderTab);STACK.forEach(p=>refreshPage(p))}
+function renderAll(){TABS.forEach(renderTab);STACK.forEach(p=>refreshPage(p));if(window.HMHome&&HMHome.update&&HMHome.visible()&&LOGGED())HMHome.update(homeInfo())}
 function showTab(t){
  if(STACK.length){closeAllPages()}
  if(TAB===t){const el=$('#tab-'+t);el.scrollTo({top:0,behavior:'smooth'});return}
@@ -486,7 +486,7 @@ PAGES.profile=()=>{
   <div class="gi"><span class="ic" style="background:#3b82c4">${ic('spark')}</span><span class="lb">Match-Feier mit Konfetti</span><button class="switch ${S.settings.sounds?'on':''}" data-toggle="sounds" aria-label="Konfetti"></button></div>
   <button class="gi" data-act="install"><span class="ic" style="background:#555">${ic('phone')}</span><span class="lb">Zum Home-Bildschirm</span><span class="chev">${ic('chev')}</span></button>
   <button class="gi" data-act="invite"><span class="ic" style="background:#62803a">${ic('userplus')}</span><span class="lb">Freund einladen</span><span class="chev">${ic('chev')}</span></button>
-  <button class="gi" data-act="about"><span class="ic" style="background:#a08a70">${ic('info')}</span><span class="lb">Über HopfenMatch</span><span class="vl">1.10</span><span class="chev">${ic('chev')}</span></button></div>
+  <button class="gi" data-act="about"><span class="ic" style="background:#a08a70">${ic('info')}</span><span class="lb">Über HopfenMatch</span><span class="vl">1.11</span><span class="chev">${ic('chev')}</span></button></div>
  ${syncOn()?`<div class="lbl">Synchronisierung</div><div class="group"><button class="gi" data-act="syncNow"><span class="ic" style="background:${SYNC.online?'#62803a':'#a08a70'}">${ic('refresh')}</span><span class="lb">${SYNC.online?'Mit Server verbunden':'Offline'}</span><span class="vl">${syncLabel()}</span><span class="chev">${ic('chev')}</span></button></div>`:''}
  <div class="group"><button class="gi" data-act="logout"><span class="ic" style="background:#8a6a4a">${ic('logout')}</span><span class="lb">Abmelden</span><span class="vl">${esc(u.name)}</span><span class="chev">${ic('chev')}</span></button></div>
  <div class="group"><button class="gi red" data-act="reset"><span class="ic" style="background:#c0392b">${ic('refresh')}</span><span class="lb">${syncOn()?'Daten neu vom Server laden':'Daten zurücksetzen'}</span></button>
@@ -863,7 +863,7 @@ function handleAct(a,el){
   case 'logout':confirmDlg('Abmelden?',`Du bist als ${esc(U(ME).name)} angemeldet. Deine Daten bleiben auf dem Server gespeichert.`,'Abmelden',logout,false);break;
   case 'syncNow':sync(true).then(()=>{toast(SYNC.online?'Synchronisiert':'Offline – Änderungen werden später gesendet',SYNC.online?'check':'info');const p=curPage();p&&refreshPage(p)});break;
   case 'home':showHome();break;
-  case 'about':infoDlg('HopfenMatch 1.10',`Bier, Wein &amp; Whisky. Gute Leute.<br>Bewerte von 0–100, finde Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende – getrennt für Bier, Wein und Whisky.<br><br>Katalog: ${BEERS.length} Biere, ${WINES.length} Weine und ${WHISKIES.length} Whiskys. Bier: ${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern.`);break;
+  case 'about':infoDlg('HopfenMatch 1.11',`Bier, Wein &amp; Whisky. Gute Leute.<br>Bewerte von 0–100, finde Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende – getrennt für Bier, Wein und Whisky.<br><br>Katalog: ${BEERS.length} Biere, ${WINES.length} Weine und ${WHISKIES.length} Whiskys. Bier: ${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern.`);break;
   case 'ovClose':$('#overlay').classList.remove('on');break;
   case 'ovPlan':$('#overlay').classList.remove('on');tastingSheet(null,id);break;
  }
@@ -1007,6 +1007,7 @@ async function sync(force){
 function rerenderSoft(){
  // Tabs + offene Seiten neu zeichnen, ohne offene Sheets zu stören (Katalog bleibt stehen)
  TABS.forEach(renderTab);STACK.forEach(p=>{if(!p.static)refreshPage(p)});
+ if(window.HMHome&&HMHome.update&&HMHome.visible()&&LOGGED())HMHome.update(homeInfo());
 }
 function syncLabel(){const n=myPending().length;if(!SYNC.online)return n?`${n} Änderung${n===1?'':'en'} warten`:'Daten lokal';if(n)return `${n} wird gesendet …`;if(!SY.last)return '–';const s=Math.round((Date.now()-SY.last)/1000);return s<5?'gerade eben':s<60?`vor ${s} s`:rel(SY.last)}
 function pollLoop(){
@@ -1322,8 +1323,8 @@ function accDeleteSheet(){
   closeSheet(true);closeAllPages();showLogin();toast('Dein Konto wurde gelöscht','trash');
  },true);
 }
-/* ---------- Kategorie-Startseite & Intro (v1.7) ---------- */
-function homeInfo(){return {img:U(ME).img,counts:KATS.map(k=>{const n=S.ratings.filter(r=>r.user===ME&&katOf(r.beer)===k).length,it=KD[k].items;return `${it.length} ${KD[k].w.many} · `+(n?`${n} von dir bewertet`:`${new Set(it.map(b=>b.country)).size} Länder`)})}}
+/* ---------- Kategorie-Startseite & Intro (v1.7, ab 1.11 Kategorie-Übersicht statt Karussell) ---------- */
+function homeInfo(){return {img:U(ME).img,name:(U(ME).name||'').split(' ')[0],stats:KATS.map(k=>({total:KD[k].items.length+S.customBeers.filter(b=>katOf(b.id)===k).length,many:KD[k].w.many,mine:S.ratings.filter(r=>r.user===ME&&katOf(r.beer)===k).length})),counts:KATS.map(k=>{const n=S.ratings.filter(r=>r.user===ME&&katOf(r.beer)===k).length,it=KD[k].items;return `${it.length} ${KD[k].w.many} · `+(n?`${n} von dir bewertet`:`${new Set(it.map(b=>b.country)).size} Länder`)})}}
 function showHome(){if(!window.HMHome||!LOGGED())return;closeSheet(true);$('#overlay').classList.remove('on');HMHome.show(KAT,homeInfo());const h=$('#home');if(h)h.focus({preventScroll:true})}
 function enterKat(k){const ch=setKat(k,true);if(STACK.length)closeAllPages();if(ch||TAB!=='start'){TAB='';showTab('start')}renderAll()}
 function introDone(){window.HM_INTRO=true;const i=$('#intro');if(!i||window.HM_INTRO_HOLD)return;

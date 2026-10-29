@@ -1,14 +1,14 @@
 /* HopfenMatch Service Worker – offline-fähig.
-   1.10: Biergrafiken mit Markenfarben (brands.js). 1.9.1: kein Neustart mitten in der Nutzung.
+   1.11: Kategorie-Übersicht statt 3D-Flaschenkarussell (keine Karussell-Sprites/Etiketten mehr im Cache). 1.10: Biergrafiken mit Markenfarben (brands.js). 1.9.1: kein Neustart mitten in der Nutzung.
    - Installation lädt nur das Nötigste (HTML, CSS, JS, Schriften, Icons) → neue Version ist nach ~1 s bereit,
      Bilder werden danach im Hintergrund nachgeladen bzw. aus dem vorigen Cache übernommen.
    - CSS/JS sind versioniert (?v=N) und werden exakt gesucht: neue Seite bekommt nie altes JS (keine Versionsmischung).
    - Der vorige Cache bleibt erhalten, damit eine noch offene ältere Seite weiter alles findet.
    HTML network-first, alles andere cache-first. */
-const V=14,CACHE='hopfenmatch-v'+V;
+const V=15,CACHE='hopfenmatch-v'+V;
 const CORE=[
   "./",
-  "./css/app.css?v=14",
+  "./css/app.css?v=15",
   "./fonts/lora.woff2",
   "./fonts/sourcesans3-italic.woff2",
   "./fonts/sourcesans3.woff2",
@@ -22,16 +22,16 @@ const CORE=[
   "./icons/maskable-192.png",
   "./icons/maskable-512.png",
   "./index.html",
-  "./js/app.js?v=14",
-  "./js/bottle.js?v=14",
-  "./js/bounce.js?v=14",
-  "./js/catalog.js?v=14",
-  "./js/brands.js?v=14",
-  "./js/data.js?v=14",
-  "./js/whisky.js?v=14",
-  "./js/wine.js?v=14",
+  "./js/app.js?v=15",
+  "./js/bottle.js?v=15",
+  "./js/bounce.js?v=15",
+  "./js/catalog.js?v=15",
+  "./js/brands.js?v=15",
+  "./js/data.js?v=15",
+  "./js/whisky.js?v=15",
+  "./js/wine.js?v=15",
   "./manifest.webmanifest",
-  "./js/home.js?v=14",
+  "./js/home.js?v=15",
 ];
 const REST=[
   "./img/bot_augustiner-hell.webp",
@@ -44,33 +44,6 @@ const REST=[
   "./img/bot_tegernseer-hell.webp",
   "./img/cheers.webp",
   "./img/hero_tegernseer.webp",
-  "./img/car2_bier.webp",
-  "./img/car2_bier_s1.webp",
-  "./img/car2_bier_s2.webp",
-  "./img/car2_bier_s3.webp",
-  "./img/car2_bier_s4.webp",
-  "./img/car2_wein.webp",
-  "./img/car2_wein_s1.webp",
-  "./img/car2_wein_s2.webp",
-  "./img/car2_wein_s3.webp",
-  "./img/car2_wein_s4.webp",
-  "./img/car2_whisky.webp",
-  "./img/car2_whisky_s1.webp",
-  "./img/car2_whisky_s2.webp",
-  "./img/car2_whisky_s3.webp",
-  "./img/car2_whisky_s4.webp",
-  "./img/lab_bier_f.webp",
-  "./img/lab_bier_f_x.webp",
-  "./img/lab_bier_b.webp",
-  "./img/lab_bier_b_x.webp",
-  "./img/lab_bier_n.webp",
-  "./img/lab_wein_f.webp",
-  "./img/lab_wein_f_x.webp",
-  "./img/lab_wein_b.webp",
-  "./img/lab_whisky_f.webp",
-  "./img/lab_whisky_f_x.webp",
-  "./img/lab_whisky_b.webp",
-  "./img/lab_whisky_b_x.webp",
   "./img/hop_logo_t.webp",
   "./img/hop_illu.webp",
   "./img/hop_logo.webp",
@@ -83,15 +56,6 @@ const REST=[
   "./img/pair_schneider-tap7.webp",
   "./img/pair_tegernseer-hell.webp",
   "./img/sascha.jpg",
-  "./img/car3_bier_s2.webp",
-  "./img/car3_bier_s3.webp",
-  "./img/car3_bier_s4.webp",
-  "./img/car3_wein_s2.webp",
-  "./img/car3_wein_s3.webp",
-  "./img/car3_wein_s4.webp",
-  "./img/car3_whisky_s2.webp",
-  "./img/car3_whisky_s3.webp",
-  "./img/car3_whisky_s4.webp",
 ];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 const num=k=>{const m=/^hopfenmatch-v(\d+)$/.exec(k);return m?+m[1]:-1};

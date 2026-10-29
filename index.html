@@ -20,7 +20,7 @@
 <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon-152.png">
 <link rel="preload" href="fonts/lora.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sourcesans3.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/app.css?v=14">
+<link rel="stylesheet" href="css/app.css?v=15">
 <style>/* Intro (inline, damit es vor allem anderen und auch mit alten Caches funktioniert) */
 #intro{position:absolute;inset:0;z-index:95;overflow:hidden;background:radial-gradient(110% 70% at 50% 42%,#3b2615 0%,#1b1009 52%,#090504 100%);transition:opacity .62s cubic-bezier(.4,0,.2,1),transform .62s cubic-bezier(.4,0,.2,1);animation:inSafe .6s 7s forwards}
 #intro.done{opacity:0;transform:scale(1.06);pointer-events:none}
@@ -70,14 +70,14 @@
 <script>(function(){var i=document.getElementById('intro');if(!i)return;try{var w=document.getElementById('screen').clientWidth;i.style.setProperty('--iw',w+'px')}catch(e){}
 if(/[?&]nointro/.test(location.search)){i.remove();return}
 setTimeout(function(){if(i.isConnected&&!window.HM_INTRO&&!window.HM_INTRO_HOLD){i.classList.add('done');setTimeout(function(){i.remove()},700)}},4500)})();</script>
-<script src="js/data.js?v=14"></script>
-<script src="js/catalog.js?v=14"></script>
-<script src="js/brands.js?v=14"></script>
-<script src="js/bottle.js?v=14"></script>
-<script src="js/wine.js?v=14"></script>
-<script src="js/whisky.js?v=14"></script>
-<script src="js/home.js?v=14"></script>
-<script src="js/bounce.js?v=14"></script>
-<script src="js/app.js?v=14"></script>
+<script src="js/data.js?v=15"></script>
+<script src="js/catalog.js?v=15"></script>
+<script src="js/brands.js?v=15"></script>
+<script src="js/bottle.js?v=15"></script>
+<script src="js/wine.js?v=15"></script>
+<script src="js/whisky.js?v=15"></script>
+<script src="js/home.js?v=15"></script>
+<script src="js/bounce.js?v=15"></script>
+<script src="js/app.js?v=15"></script>
 </body>
 </html>
