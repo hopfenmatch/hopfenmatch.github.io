@@ -103,8 +103,8 @@ URL-Parameter: `?frame=0` (ohne Rahmen), `?frame=1` (Rahmen erzwingen), `?nosw` 
 - Bewusst **nicht** übernommen: Logos, Wappen, Maskottchen, Original-Schriftzüge, Originallayouts und Etikettformen, Slogans.
 - Neue Formen: Euro-, Vichy- und Ale-Flasche sowie die 0,5-l-Dose. Wein und Whisky sehen aus wie bisher. Ein SVG ist etwa 2,3 KB groß, Lazy-Loading ist unverändert. Service-Worker-Cache v14.
 
-## v1.11: Kategorie-Übersicht statt Flaschenkarussell
-- Das 3D-Flaschenkarussell (WebGL, `car*_`/`lab_`-Sprites) ist entfernt. Ablauf: Logo-Intro → (Anmeldung, falls nötig) → Kategorie-Übersicht.
-- `js/home.js` neu (~100 Zeilen statt 49 KB): drei Karten Bier (groß, Gold), Wein (Bordeaux), Whisky (Kupfer) mit eigenen SVG-Icons, Katalogzahl und Anzahl eigener Bewertungen; gestaffeltes Einblenden, Tipp-Übergang (Karte leuchtet, Rest blendet aus). `prefers-reduced-motion` wird beachtet, Safe Areas über `--sat`/`--sab`, Kompaktlayout für kleine iPhones (≤ 760 px Höhe).
-- API `window.HMHome` unverändert (mount/show/hide/visible/enter) plus `update(info)`; Zahlen werden nach jedem Sync aktualisiert.
-- Service Worker `hopfenmatch-v15`: `car2_/car3_/lab_`-Bilder (~11 MB) werden nicht mehr vorgeladen. Die Bilddateien liegen noch im Repo, damit offene v1.10-Clients nicht brechen; sie können mit v1.12 gelöscht werden.
+## v1.11: Kategorie-Umschalter auf der Startseite statt Flaschenkarussell
+- Das 3D-Flaschenkarussell (WebGL, `car*_`/`lab_`-Sprites, `js/home.js`) ist entfernt. Ablauf: Logo-Intro → (Anmeldung, falls nötig) → direkt die Startseite der zuletzt genutzten Kategorie (Standard Bier, gespeichert in `hopfenmatch.kat`).
+- Unter dem Kopf jedes Tabs sitzt ein gut sichtbarer Umschalter Bier / Wein / Whisky (dunkles Segmented Control, eigene kleine SVG-Icons, Akzent Gold / Bordeaux / Kupfer, gleitende Markierung, Inhalt blendet weich über). Das kleine Pill unter dem Schriftzug ist durch die Kategorie-Zeile ersetzt; „Kategorie wechseln“ im Profil springt zum Umschalter.
+- Fix: „Zuletzt bewertet“ und der Freundes-Status zeigen nur Einträge der aktiven Kategorie (vorher erschien z. B. ein Bier auf der Wein-Startseite).
+- Service Worker `hopfenmatch-v15`: Karussell-Bilder (~11 MB) werden nicht mehr vorgeladen. Die Bilddateien liegen noch im Repo, damit offene v1.10-Clients nicht brechen; sie können mit v1.12 gelöscht werden.

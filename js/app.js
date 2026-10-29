@@ -200,9 +200,23 @@ function actRow(e){
 function header(){
  const unread=myNotifs().some(n=>!n.read);
  return `<div class="hdr"><button class="bell" data-go="notifs" aria-label="Benachrichtigungen">${ic('bell')}${unread?'<span class="dot"></span>':''}</button>
- <div class="logo"><div class="hoprow"><i></i><img src="img/hop_logo.webp" alt=""><i></i></div><div class="wm">Hopfen<b>Match</b></div><button class="katsw" data-act="home" aria-label="Kategorie wechseln (jetzt ${w.one})"><span class="ke">${KD[KAT].em}</span>${w.tag}<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
- <button class="me" data-go="profile" aria-label="Profil &amp; Einstellungen"><img crossorigin="anonymous" src="${U(ME).img}" alt="${esc(U(ME).name)}"></button></div>`;
+ <div class="logo"><div class="hoprow"><i></i><img src="img/hop_logo.webp" alt=""><i></i></div><div class="wm">Hopfen<b>Match</b></div><div class="tag">${w.tag}</div></div>
+ <button class="me" data-go="profile" aria-label="Profil &amp; Einstellungen"><img crossorigin="anonymous" src="${U(ME).img}" alt="${esc(U(ME).name)}"></button></div>${katSwitch()}`;
 }
+/* v1.11: gut sichtbarer Kategorie-Umschalter (Segmented Control) unter dem Kopf – ersetzt Karussell/Übersicht und das kleine Kopf-Pill */
+const KIC={bier:'<svg viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M5.6 9.2a2.6 2.6 0 0 1 1.7-4.4 3.2 3.2 0 0 1 5.6-.9 2.7 2.7 0 0 1 3.6 3.6 1.9 1.9 0 0 1-.4 1.7z"/><path d="M6 9.4h9.6v9.4a2.2 2.2 0 0 1-2.2 2.2H8.2A2.2 2.2 0 0 1 6 18.8zM15.6 11.4h1.9a2 2 0 0 1 2 2v2.4a2 2 0 0 1-2 2h-1.9M9.2 13v5M12.4 13v5"/></svg>',
+ wein:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.3 3h9.4l.4 4.6a5.1 5.1 0 0 1-10.2 0zM12 12.8V20.4M8.4 20.8h7.2"/><path class="f" d="M7.5 7.4h9a4.5 4.5 0 0 1-9 0z" opacity=".55"/></svg>',
+ whisky:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h14l-1.4 13.4a2.3 2.3 0 0 1-2.3 2.1H8.7a2.3 2.3 0 0 1-2.3-2.1z"/><path class="f" d="M6.2 12.4h11.6l-.75 6.4a1.3 1.3 0 0 1-1.3 1.2H8.25a1.3 1.3 0 0 1-1.3-1.2z" opacity=".55"/><rect x="9" y="8.6" width="4.6" height="4.6" rx="1" transform="rotate(-12 11.3 10.9)"/></svg>'};
+function katSwitch(){const i=KATS.indexOf(KAT);
+ return `<div class="ksw" role="tablist" aria-label="Kategorie" data-k="${KAT}" style="--ki:${i}"><span class="ksw-ind" aria-hidden="true"><i class="kb"></i><i class="kw"></i><i class="kk"></i></span>${KATS.map(k=>`<button class="ksw-b ${k===KAT?'on':''}" role="tab" aria-selected="${k===KAT}" data-ksw="${k}">${KIC[k]}<span>${KD[k].w.one}</span></button>`).join('')}</div>`}
+let KSW_T=0;
+function switchKat(k){if(!KATS.includes(k)||k===KAT)return;
+ const rm=matchMedia('(prefers-reduced-motion: reduce)').matches,i=KATS.indexOf(k);
+ $$('.ksw').forEach(x=>{x.dataset.k=k;x.style.setProperty('--ki',i);x.querySelectorAll('.ksw-b').forEach(b=>{const on=b.dataset.ksw===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)})});
+ const vs=()=>$$('.tabview .wrap');vs().forEach(v=>{v.classList.remove('kin');v.classList.add('kout')});
+ clearTimeout(KSW_T);KSW_T=setTimeout(()=>{setKat(k);const t=$('#tab-'+TAB);if(t&&t.scrollTop>0)t.scrollTop=0;
+  vs().forEach(v=>{v.classList.add('kin');setTimeout(()=>v.classList.remove('kin'),600)})},rm?0:190)}
+function hintKat(){closeAllPages();closeSheet(true);showTab('start');const t=$('#tab-start');if(t)t.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>{const x=$('#tab-start .ksw');if(x){x.classList.remove('hint');void x.offsetWidth;x.classList.add('hint')}},250)}
 let TAB='start', RFILTER='all';
 const TABS=['start','rangliste','freunde','planen'];
 function renderTab(t){
@@ -213,7 +227,7 @@ function renderTab(t){
  el.scrollTop=st;
  if(fid){const n=el.querySelector('#'+fid);if(n){n.focus({preventScroll:true});try{if(ss!=null)n.setSelectionRange(ss,ss)}catch(e){}}}
 }
-function renderAll(){TABS.forEach(renderTab);STACK.forEach(p=>refreshPage(p));if(window.HMHome&&HMHome.update&&HMHome.visible()&&LOGGED())HMHome.update(homeInfo())}
+function renderAll(){TABS.forEach(renderTab);STACK.forEach(p=>refreshPage(p))}
 function showTab(t){
  if(STACK.length){closeAllPages()}
  if(TAB===t){const el=$('#tab-'+t);el.scrollTo({top:0,behavior:'smooth'});return}
@@ -225,7 +239,7 @@ function showTab(t){
 /* ---------- Ansichten (Tabs) ---------- */
 const VIEWS={};
 VIEWS.start=()=>{
- const last=S.ratings.filter(r=>r.user===ME).sort((a,b)=>b.ts-a.ts)[0];
+ const last=S.ratings.filter(r=>r.user===ME&&inK(r.beer)).sort((a,b)=>b.ts-a.ts)[0];
  let hero='';
  if(last){const b=B(last.beer), fav=myFavs().includes(b.id);
   const himg=b.img&&b.img.hero?`<div class="himg" style="background-image:url(img/${b.img.hero}.webp)"></div>`:`<div class="himg gen"><div class="hb">${thumb(b,'pair')}</div></div>`;
@@ -260,15 +274,15 @@ VIEWS.rangliste=()=>{
  const gc={};all.forEach(r=>{const g=grpOf(B(r.beer));gc[g]=(gc[g]||0)+1});
  const groups=[['all','Alle',all.length],['match','Matches',all.filter(r=>isMatch(r.beer)).length]].concat(KD[KAT].groups.filter(g=>gc[g[0]]).map(g=>[g[0],g[1],gc[g[0]]]));
  if(!groups.some(g=>g[0]===RFILTER))RFILTER='all';
- if(!all.length)return `<div class="wrap"><h1 class="ptitle big">Rangliste</h1><p class="psub">Meine bewerteten ${w.many}</p>${emptyCard('trophy','Deine Rangliste ist noch leer',`Bewerte ${w.erst} – hier entsteht deine persönliche Top-Liste, sortiert nach Punkten.`,`<button class="btn gold sm" data-act="rate">${ic('plus')} Bier bewerten</button><button class="btn ghost sm" data-go="catalog">${ic('search')} Katalog</button>`)}</div>`;
+ if(!all.length)return `<div class="wrap"><h1 class="ptitle big">Rangliste</h1><p class="psub">Meine bewerteten ${w.many}</p>${emptyCard('trophy','Deine Rangliste ist noch leer',`Bewerte ${w.erst} – hier entsteht deine persönliche Top-Liste, sortiert nach Punkten.`,`<button class="btn gold sm" data-act="rate">${ic('plus')} ${w.one} bewerten</button><button class="btn ghost sm" data-go="catalog">${ic('search')} Katalog</button>`)}</div>`;
  const list=all.filter(r=>RFILTER==='all'||(RFILTER==='match'?isMatch(r.beer):grpOf(B(r.beer))===RFILTER));
  return `<div class="wrap"><h1 class="ptitle big">Rangliste</h1><p class="psub">Meine bewerteten ${w.many}</p>
  <div class="filters">${groups.map(g=>`<button class="fchip ${RFILTER===g[0]?'on':''}" data-filter="${g[0]}">${g[1]}${g[2]!=null?` <span class="n">${g[2]}</span>`:''}</button>`).join('')}</div>
  <div class="rlist">${list.length?list.map(r=>rankRow(r,all.indexOf(r),ME)).join(''):`<div class="card empty">Keine ${w.many} in dieser Gruppe.<br><br><button class="btn gold sm" data-act="rate">${ic('plus')} ${w.one} bewerten</button></div>`}</div></div>`;
 };
 function friendStatus(f){
- const c=S.checkins.filter(x=>x.user===f).sort((a,b)=>b.ts-a.ts)[0];
- const r=S.ratings.filter(x=>x.user===f).sort((a,b)=>b.ts-a.ts)[0];
+ const c=S.checkins.filter(x=>x.user===f&&inK(x.beer)).sort((a,b)=>b.ts-a.ts)[0];
+ const r=S.ratings.filter(x=>x.user===f&&inK(x.beer)).sort((a,b)=>b.ts-a.ts)[0];
  if(c&&(!r||c.ts>r.ts)&&Date.now()-c.ts<6*H)return {live:true,label:'trinkt gerade',beer:c.beer,comment:c.comment,ts:c.ts};
  if(!r)return {live:false,label:'noch nichts bewertet',beer:null,comment:'',ts:0};
  return {live:false,label:'hat bewertet · '+rel(r.ts),beer:r.beer,comment:r.comment,ts:r.ts};
@@ -796,6 +810,7 @@ document.addEventListener('click',e=>{
  const fav=el.closest('[data-fav]');if(fav){const id=fav.dataset.fav,F=myFavs(),i=F.indexOf(id);if(i>=0)F.splice(i,1);else F.push(id);save();fav.classList.toggle('on',i<0);fav.classList.remove('pop');void fav.offsetWidth;fav.classList.add('pop');toast(i<0?'Zu Favoriten hinzugefügt':'Aus Favoriten entfernt','heartf');return}
  const frb=el.closest('[data-fr]');if(frb){friendAct(frb.dataset.fr,frb.dataset.id,frb);return}
  const mb=el.closest('[data-match]');if(mb){matchOverlay(mb.dataset.match,mb.dataset.f);return}
+ const ks=el.closest('[data-ksw]');if(ks){switchKat(ks.dataset.ksw);return}
  const tg=el.closest('[data-tab-go]');if(tg){showTab(tg.dataset.tabGo);return}
  const tab=el.closest('[data-tab]');if(tab){showTab(tab.dataset.tab);return}
  const f=el.closest('[data-filter]');if(f){RFILTER=f.dataset.filter;renderTab('rangliste');return}
@@ -862,7 +877,7 @@ function handleAct(a,el){
   case 'install':infoDlg('Als App installieren','iPhone (Safari): Tippe unten auf <b>Teilen</b> und wähle <b>„Zum Home-Bildschirm“</b>. HopfenMatch startet dann im Vollbild wie eine echte App – auch offline.');break;
   case 'logout':confirmDlg('Abmelden?',`Du bist als ${esc(U(ME).name)} angemeldet. Deine Daten bleiben auf dem Server gespeichert.`,'Abmelden',logout,false);break;
   case 'syncNow':sync(true).then(()=>{toast(SYNC.online?'Synchronisiert':'Offline – Änderungen werden später gesendet',SYNC.online?'check':'info');const p=curPage();p&&refreshPage(p)});break;
-  case 'home':showHome();break;
+  case 'home':hintKat();break;
   case 'about':infoDlg('HopfenMatch 1.11',`Bier, Wein &amp; Whisky. Gute Leute.<br>Bewerte von 0–100, finde Matches mit Freunden (beide über 90) und plane gemeinsame Tasting-Abende – getrennt für Bier, Wein und Whisky.<br><br>Katalog: ${BEERS.length} Biere, ${WINES.length} Weine und ${WHISKIES.length} Whiskys. Bier: ${BEERS.length} Biere aus ${new Set(BEERS.map(b=>b.country)).size} Ländern.`);break;
   case 'ovClose':$('#overlay').classList.remove('on');break;
   case 'ovPlan':$('#overlay').classList.remove('on');tastingSheet(null,id);break;
@@ -1007,7 +1022,6 @@ async function sync(force){
 function rerenderSoft(){
  // Tabs + offene Seiten neu zeichnen, ohne offene Sheets zu stören (Katalog bleibt stehen)
  TABS.forEach(renderTab);STACK.forEach(p=>{if(!p.static)refreshPage(p)});
- if(window.HMHome&&HMHome.update&&HMHome.visible()&&LOGGED())HMHome.update(homeInfo());
 }
 function syncLabel(){const n=myPending().length;if(!SYNC.online)return n?`${n} Änderung${n===1?'':'en'} warten`:'Daten lokal';if(n)return `${n} wird gesendet …`;if(!SY.last)return '–';const s=Math.round((Date.now()-SY.last)/1000);return s<5?'gerade eben':s<60?`vor ${s} s`:rel(SY.last)}
 function pollLoop(){
@@ -1241,7 +1255,7 @@ function doLogin(u,info,fresh){
  if(S.owner&&S.owner!==u){S=emptyState();SY.rev=null;SY.snap={};SY.fv='';SY.resync=false;saveSync()}
  S.owner=u;save(true);
  if(DIR.me!==u){DIR={me:'',users:{},friends:[],incoming:[],outgoing:[],fv:''};if(info)DIR.users[u]={id:u,name:info.name,av:info.av||0};saveDir()}
- setUser(u);FQ.q='';FQ.res=null;closeAllPages();closeSheet(true);$('#overlay').classList.remove('on');RFILTER='all';TAB='';showTab('start');renderAll();if(!/[?&]nohome/.test(location.search))showHome();
+ setUser(u);FQ.q='';FQ.res=null;closeAllPages();closeSheet(true);$('#overlay').classList.remove('on');RFILTER='all';TAB='';showTab('start');renderAll();
  const el=loginEl();el.classList.add('out');document.documentElement.classList.remove('locked');
  setTimeout(()=>{el.classList.remove('on','out');el.innerHTML=''},450);
  setTimeout(()=>toast(fresh?`Willkommen, ${U(u).name}! 🍻`:`Hallo ${U(u).name}! 🍻`,'beer'),900);
@@ -1323,10 +1337,7 @@ function accDeleteSheet(){
   closeSheet(true);closeAllPages();showLogin();toast('Dein Konto wurde gelöscht','trash');
  },true);
 }
-/* ---------- Kategorie-Startseite & Intro (v1.7, ab 1.11 Kategorie-Übersicht statt Karussell) ---------- */
-function homeInfo(){return {img:U(ME).img,name:(U(ME).name||'').split(' ')[0],stats:KATS.map(k=>({total:KD[k].items.length+S.customBeers.filter(b=>katOf(b.id)===k).length,many:KD[k].w.many,mine:S.ratings.filter(r=>r.user===ME&&katOf(r.beer)===k).length})),counts:KATS.map(k=>{const n=S.ratings.filter(r=>r.user===ME&&katOf(r.beer)===k).length,it=KD[k].items;return `${it.length} ${KD[k].w.many} · `+(n?`${n} von dir bewertet`:`${new Set(it.map(b=>b.country)).size} Länder`)})}}
-function showHome(){if(!window.HMHome||!LOGGED())return;closeSheet(true);$('#overlay').classList.remove('on');HMHome.show(KAT,homeInfo());const h=$('#home');if(h)h.focus({preventScroll:true})}
-function enterKat(k){const ch=setKat(k,true);if(STACK.length)closeAllPages();if(ch||TAB!=='start'){TAB='';showTab('start')}renderAll()}
+/* ---------- Intro (Logo) – danach direkt die Startseite der zuletzt genutzten Kategorie (ab 1.11) ---------- */
 function introDone(){window.HM_INTRO=true;const i=$('#intro');if(!i||window.HM_INTRO_HOLD)return;
  const rm=matchMedia('(prefers-reduced-motion: reduce)').matches,min=rm?1000:2100,wait=Math.max(0,min-performance.now());
  setTimeout(()=>{i.classList.add('done');setTimeout(()=>i.remove(),700)},wait)}
@@ -1347,14 +1358,12 @@ function init(){
  $('#plus').innerHTML=ic('plus');$('#plus').addEventListener('click',()=>{closeSheet(true);rateSheet()});
  $('#overlay').addEventListener('click',e=>{if(e.target.id==='overlay')$('#overlay').classList.remove('on')});
  setKat(KAT,true);
- if(window.HMHome)HMHome.mount($('#home'),{kat:KAT,onEnter:enterKat,onProfile:()=>{HMHome.enter();setTimeout(()=>push('profile'),120)}});
  // Dauerhaft angemeldet: Ist ein Sitzungs-Token gespeichert, geht es ohne Anmeldebildschirm direkt los (Sitzungen laufen nicht ab).
  let su=null;try{su=localStorage.getItem(LS_USER)}catch(e){}
- const nohome=/[?&]nohome/.test(location.search);
- if(su&&(syncOn()?(SY.tokens[su]||SY.cred[su]):USERS[su])){setUser(su);if(!S.owner){S.owner=su;save(true)}renderAll();const h=location.hash.slice(1);if(TABS.includes(h)&&h!=='start'){showTab(h)}else if(!nohome)showHome();sync(true);pollLoop()}
+ if(su&&(syncOn()?(SY.tokens[su]||SY.cred[su]):USERS[su])){setUser(su);if(!S.owner){S.owner=su;save(true)}renderAll();const h=location.hash.slice(1);if(TABS.includes(h)&&h!=='start')showTab(h);sync(true);pollLoop()}
  else{renderAll();showLogin()}
  introDone();
- setInterval(()=>{if(!SHEET&&!STACK.length&&!$('#login.on')&&!(window.HMHome&&HMHome.visible()))renderTab(TAB)},60000);
+ setInterval(()=>{if(!SHEET&&!STACK.length&&!$('#login.on'))renderTab(TAB)},60000);
  if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&!/nosw/.test(location.search)){
   /* 1.9.1: Neue Version nie mitten in der Nutzung neu laden. Nur ganz am Anfang (Logo/Anmeldung, noch nichts angetippt)
      einmal still neu laden – sonst gilt das Update beim nächsten Start. Schutz gegen Neulade-Schleifen über sessionStorage. */
@@ -1369,7 +1378,7 @@ function init(){
  addEventListener('online',()=>{SYNC.online=true;sync(true)});addEventListener('offline',()=>{SYNC.online=false});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&LOGGED()){sync();pollLoop()}});
  document.addEventListener('input',e=>{if(e.target.id==='fq')friendSearch(e.target.value)});
- window.HM={kat:()=>KAT,setKat:k=>{if(window.HMHome)HMHome.hide();enterKat(k)},showHome,B,katOf,S:()=>S,me:()=>ME,dir:()=>DIR,friends:()=>FRIENDS(),sync,syncState:()=>SYNC,SY:()=>SY,pending:()=>myPending(),searchBeers,catalogSize:()=>beers().length,push,pop,showTab,rateSheet,matchOverlay,tastingSheet,inviteSheet,closeSheet,logout};
+ window.HM={kat:()=>KAT,setKat:switchKat,B,katOf,S:()=>S,me:()=>ME,dir:()=>DIR,friends:()=>FRIENDS(),sync,syncState:()=>SYNC,SY:()=>SY,pending:()=>myPending(),searchBeers,catalogSize:()=>beers().length,push,pop,showTab,rateSheet,matchOverlay,tastingSheet,inviteSheet,closeSheet,logout};
 }
 init();
 })();

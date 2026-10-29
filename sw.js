@@ -1,5 +1,5 @@
 /* HopfenMatch Service Worker – offline-fähig.
-   1.11: Kategorie-Übersicht statt 3D-Flaschenkarussell (keine Karussell-Sprites/Etiketten mehr im Cache). 1.10: Biergrafiken mit Markenfarben (brands.js). 1.9.1: kein Neustart mitten in der Nutzung.
+   1.11: 3D-Flaschenkarussell entfernt (keine Sprites mehr im Cache), Kategorie-Umschalter auf der Startseite. 1.10: Biergrafiken mit Markenfarben (brands.js). 1.9.1: kein Neustart mitten in der Nutzung.
    - Installation lädt nur das Nötigste (HTML, CSS, JS, Schriften, Icons) → neue Version ist nach ~1 s bereit,
      Bilder werden danach im Hintergrund nachgeladen bzw. aus dem vorigen Cache übernommen.
    - CSS/JS sind versioniert (?v=N) und werden exakt gesucht: neue Seite bekommt nie altes JS (keine Versionsmischung).
@@ -31,7 +31,6 @@ const CORE=[
   "./js/whisky.js?v=15",
   "./js/wine.js?v=15",
   "./manifest.webmanifest",
-  "./js/home.js?v=15",
 ];
 const REST=[
   "./img/bot_augustiner-hell.webp",
